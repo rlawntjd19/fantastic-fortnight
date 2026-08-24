@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: weather-alert-app
+    runtime: python
+    plan: free
+    rootDir: weather_app
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --chdir backend --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: KMA_SERVICE_KEY
+        sync: false
+      - key: ACCUWEATHER_API_KEY
+        sync: false
+      - key: DEFAULT_WEATHER_PROVIDER
+        sync: false

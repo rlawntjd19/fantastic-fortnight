@@ -27,7 +27,23 @@ iPhone Safari에서는 일반 웹앱과 동일하게 완전히 동작하고, 홈
 - **알림**: 브라우저 알림 권한을 허용하면 앱이 열려 있는 동안 5분마다 특보를 확인해 알려줍니다
 - **iPhone 최적화 UI**: 다크모드 대응, 하단 탭바, safe-area(노치/홈 인디케이터) 대응
 
-## 빠른 시작 (샘플 데이터로 바로 체험)
+## 배포해서 아이폰에서 열어보기
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/rlawntjd19/fantastic-fortnight/tree/claude/weather-alert-app-dev-fxt6r2)
+
+1. 위 버튼 클릭 → Render 계정으로 로그인/가입 (GitHub 연동)
+2. 이 저장소(`rlawntjd19/fantastic-fortnight`)를 선택하면 저장소 루트의
+   `render.yaml`(Blueprint)을 읽어 `weather_app/`을 자동으로 빌드·배포합니다
+   (무료 플랜, `gunicorn`으로 실행)
+3. `KMA_SERVICE_KEY` / `ACCUWEATHER_API_KEY`는 배포 화면에서 비워두고 넘어가도
+   됩니다 (mock 데이터로 동작). 나중에 Render 대시보드 > Environment 에서 값을
+   넣고 저장하면 재배포됩니다
+4. 배포가 끝나면 `https://weather-alert-app-xxxx.onrender.com` 형태의 주소가
+   생깁니다 — 이 주소를 **아이폰 Safari**로 열고 공유 버튼 → "홈 화면에 추가"
+
+무료 플랜은 트래픽이 없으면 슬립되어 첫 요청 시 로딩이 몇십 초 걸릴 수 있습니다.
+
+## 빠른 시작 (샘플 데이터로 바로 체험, 로컬)
 
 ```bash
 cd weather_app
@@ -117,7 +133,10 @@ weather_app/
     manifest.webmanifest, sw.js, icons/
   tests/                    # pytest (provider 파싱 + API 엔드포인트)
   requirements.txt
+  Procfile                  # gunicorn 시작 명령 (Render/Railway 등에서 사용)
   .env.example
+
+render.yaml                  # 저장소 루트: Render Blueprint (rootDir: weather_app)
 ```
 
 ## API
