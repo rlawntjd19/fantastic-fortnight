@@ -35,6 +35,12 @@ class RiskLimits:
     # is still allowed).
     daily_loss_circuit_breaker_pct: float = 0.05
 
+    # Optional trailing stop: once set, an open position's stop-loss is
+    # ratcheted toward the current price by this fraction as it moves
+    # favorably, and never loosened. None (default) keeps the original
+    # fixed stop from the trade plan, unchanged for the life of the position.
+    trailing_stop_pct: float | None = None
+
 
 @dataclass(frozen=True)
 class KronosConfig:
@@ -63,6 +69,24 @@ class KronosConfig:
 
 
 @dataclass(frozen=True)
+class LiveDataConfig:
+    """Settings for the optional real-market-data feed (Yahoo Finance via `yfinance`).
+
+    Off by default (`SimulatedFeed` is used instead) since it needs a
+    network call and the `yfinance` package. Enable with `--live` on the
+    CLI or `TRADING_AGENT_LIVE_DATA_ENABLED=true`. Unlike the Kronos
+    forecaster, a failed *fetch* (bad ticker, no network) is never
+    silently swapped for fake data — that would be actively misleading
+    for a finance tool — it's raised as a clear error instead. Only a
+    missing `yfinance` install falls back, the same way Kronos does.
+    """
+
+    enabled: bool = os.environ.get("TRADING_AGENT_LIVE_DATA_ENABLED", "false").lower() == "true"
+    period: str = os.environ.get("TRADING_AGENT_LIVE_DATA_PERIOD", "6mo")
+    interval: str = os.environ.get("TRADING_AGENT_LIVE_DATA_INTERVAL", "1d")
+
+
+@dataclass(frozen=True)
 class Config:
     model_name: str = os.environ.get("TRADING_AGENT_MODEL", "claude-sonnet-5")
     anthropic_api_key: str | None = os.environ.get("ANTHROPIC_API_KEY")
@@ -71,6 +95,7 @@ class Config:
     )
     risk: RiskLimits = field(default_factory=RiskLimits)
     kronos: KronosConfig = field(default_factory=KronosConfig)
+    live_data: LiveDataConfig = field(default_factory=LiveDataConfig)
     memory_path: str = os.environ.get(
         "TRADING_AGENT_MEMORY_PATH", "trading_agent_memory.json"
     )

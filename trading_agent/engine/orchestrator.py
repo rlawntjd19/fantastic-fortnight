@@ -65,13 +65,33 @@ class TradingCycle:
         self._conservative = ConservativeDebator(llm)
         self._neutral = NeutralDebator(llm)
 
+    @property
+    def config(self) -> Config:
+        return self._config
+
+    def fetch_snapshot(self, symbol: str):
+        """Exposed separately from `run_cycle` so a caller that needs the raw
+        snapshot too (e.g. `cli.py watch`, to mark positions to market and
+        check stop-losses before running the analysis) can fetch it once and
+        reuse it via `run_cycle_with_snapshot`, instead of fetching twice."""
+        return self._data_provider.get_snapshot(symbol)
+
     def run_cycle(
         self,
         symbol: str,
         account_equity: float,
         circuit_breaker: DailyCircuitBreaker | None = None,
     ) -> CycleArtifacts:
-        snapshot = self._data_provider.get_snapshot(symbol)
+        snapshot = self.fetch_snapshot(symbol)
+        return self.run_cycle_with_snapshot(snapshot, account_equity, circuit_breaker)
+
+    def run_cycle_with_snapshot(
+        self,
+        snapshot,
+        account_equity: float,
+        circuit_breaker: DailyCircuitBreaker | None = None,
+    ) -> CycleArtifacts:
+        symbol = snapshot.symbol
 
         reports = [
             self._technical.analyze(snapshot),

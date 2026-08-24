@@ -1,0 +1,3 @@
+# Optional extra for real market data (trading_agent/data/yfinance_provider.py).
+# Not needed unless TRADING_AGENT_LIVE_DATA_ENABLED=true / `--live` is used.
+yfinance>=0.2.40

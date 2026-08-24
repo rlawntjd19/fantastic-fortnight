@@ -101,3 +101,18 @@ def enforce_hard_limits(
         notes="Hard limits enforced in code; the trade plan is clamped to fit, "
         "not rejected, except when a required safety condition is missing.",
     )
+
+
+def trailing_stop_price(
+    quantity: float, current_stop: float, current_price: float, trailing_stop_pct: float
+) -> float:
+    """The new stop-loss price for one position after a trailing-stop update.
+
+    Only ever tightens the stop toward locking in gains — never loosens it,
+    even if the price moves against the position since the last tick (that
+    case is exactly what the original fixed stop is still there to catch).
+    """
+    if quantity > 0:  # long: stop trails below price
+        return max(current_stop, current_price * (1 - trailing_stop_pct))
+    else:  # short: stop trails above price
+        return min(current_stop, current_price * (1 + trailing_stop_pct))

@@ -89,6 +89,50 @@ correction spelled out.
 Add `--approve` to be asked, after seeing the full breakdown, whether to
 book the (already clamped) decision into the local paper broker.
 
+## Live data, continuous trading, and the dashboard
+
+By default `SimulatedFeed` gives each symbol its own deterministic
+pseudo-random walk (seeded from `(seed, symbol)`, so different tickers
+actually look different, and calling it again for the same symbol
+advances the walk instead of repeating it — that's what lets `watch`
+below see prices move between ticks).
+
+**Real market data** — `--live` swaps in Yahoo Finance via `yfinance`:
+
+```bash
+pip install -r requirements-live.txt
+python -m trading_agent.cli signal 000660.KS --live   # a real ticker, not a placeholder
+```
+
+Unlike Kronos, a failed *fetch* (bad ticker, no network) is never
+silently swapped for fake data — `YFinanceFeed.get_snapshot` raises a
+clear error instead, since quietly substituting simulated prices under
+a real ticker's name would be actively misleading for a finance tool.
+Only a missing `yfinance` install falls back (`data/factory.py`), the
+same pattern as `forecast/factory.py`.
+
+**Continuous paper trading** — `watch` runs `TradingCycle` on a loop,
+marking positions to market and checking stop-losses every tick:
+
+```bash
+python -m trading_agent.cli watch 000660.KS --live --auto-approve --interval 60 --dashboard
+```
+
+`--auto-approve` is the one deliberate relaxation of "a human approves
+every booking" (see `engine/live_runner.py`): typing this flag *is* the
+one-time human approval, opted into once for the session, in exchange
+for not re-prompting every tick. `PaperBroker.execute` itself is
+unchanged — it still refuses anything without `human_approved=True`.
+Without `--auto-approve`, `watch` just previews decisions on a loop and
+books nothing. **No system can guarantee profit** — this loop can lose
+paper money as easily as make it; what it provides is the fixed
+multi-agent decision process running repeatedly, not an edge.
+
+`--dashboard` serves a live dashboard at `http://127.0.0.1:8787`
+(`trading_agent/dashboard.py`, stdlib `http.server` only, no new
+dependency, bound to localhost) — an equity curve, open positions, and
+a recent-decisions log, polling `/api/state` every few seconds.
+
 ## Kronos (optional price-forecasting analyst)
 
 [Kronos](https://github.com/shiyu-coder/Kronos) (MIT license) is an
@@ -144,6 +188,52 @@ Two things this integration deliberately does **not** do:
   analysts should pass those through instead — see the comment in
   `kronos_forecaster.py`.
 
+## Trailing stops, performance metrics, and backtesting
+
+`RiskLimits.trailing_stop_pct` (`config.py`, off by default) ratchets an
+open position's stop-loss toward the current price as it moves favorably
+and never loosens it — still entirely code-decided
+(`engine/risk_controls.trailing_stop_price`), the same way every other
+hard limit is. `watch` and `backtest` both apply it every tick when set.
+
+`engine/performance.py` turns an equity curve and closed-trade PnLs into
+total return, max drawdown, win rate, and per-tick Sharpe/Sortino-style
+ratios (explicitly **not** annualized or risk-free-rate-adjusted — a
+relative diagnostic, not a number to compare against a fund's reported
+Sharpe). The dashboard and `backtest`'s report both use it.
+
+`backtest` replays historical bars through the exact same pipeline
+bar-by-bar via `engine/backtest.ReplayFeed`, which only ever hands back
+bars up to its current cursor — structurally unable to leak a future bar
+into a decision, the same "no look-ahead" discipline dedicated
+backtesting frameworks enforce:
+
+```bash
+python -m trading_agent.cli backtest 000660.KS --live --period 1y --leverage 2
+python -m trading_agent.cli backtest AAPL --min-lookback 40   # offline, SimulatedFeed
+```
+
+Because a backtest only replays data that's already happened, entirely
+inside the local `PaperBroker`, running the command at all is itself the
+one human decision needed for every decision in the replay to book
+automatically — there's no live market to protect, and a per-tick prompt
+wouldn't show a human anything the final report doesn't already. **Past
+performance in that report does not indicate or guarantee future
+results** — treat a good backtest number as "worth investigating
+further," never as evidence the strategy has a real edge.
+
+**A correctness fix worth calling out:** `PaperBroker.execute` used to
+*replace* a symbol's position on every fill, resetting `avg_entry_price`
+to that tick's price — which silently forced unrealized PnL to exactly
+zero on every single tick. A `watch` session or `backtest` run that kept
+re-confirming the same signal (the common case) would show a perfectly
+flat equity curve no matter what the market actually did, making the
+loop, the dashboard, and any backtest report meaningless. It now nets
+into the existing position instead: same-direction fills blend into a
+weighted-average entry price, opposite-direction fills close/reduce the
+position and realize PnL first, and only flip to the other side if the
+order was larger than what was needed to flatten it.
+
 ## Tests
 
 ```bash
@@ -156,8 +246,8 @@ key required.
 
 ## Extending this
 
-* Swap `SimulatedFeed` for a real market-data vendor by implementing
-  `MarketDataProvider.get_snapshot()` against that vendor's API.
+* Any market-data vendor beyond Yahoo Finance can be added the same way
+  `YFinanceFeed` was: implement `MarketDataProvider.get_snapshot()`.
 * Adjust `RiskLimits` in `config.py` deliberately and explicitly if a
   higher ceiling is truly intended — do not raise it to make a specific
   trade plan pass.
@@ -167,3 +257,12 @@ key required.
 * Any other forecasting backend can replace Kronos the same way it
   replaces the heuristic: implement `forecast.base.PriceForecaster`
   and pass it into `TradingCycle(..., forecaster=...)`.
+* Other reasonable additions not built here: a multi-symbol watchlist
+  (`watch`/`backtest` currently follow one symbol each), desktop/webhook
+  alerts on new pending decisions or stop-outs, exporting
+  `PaperBroker.trade_log` to CSV, and running several LLM/forecaster
+  configurations side by side to compare their equity curves (a
+  same-capital, same-data, same-tools comparison, the way AI-Trader
+  pits different models against each other) — worth building only if it
+  stays a comparison of the *analysis*, not a reason to let any of them
+  execute without the approval flow this repo insists on everywhere else.

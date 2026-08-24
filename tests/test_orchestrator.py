@@ -60,6 +60,15 @@ def test_decision_status_is_pending_approval_when_within_limits():
         assert artifacts.decision.status == "pending_approval"
 
 
+def test_fetch_snapshot_and_run_cycle_with_snapshot_match_run_cycle():
+    cfg = DEFAULT_CONFIG
+    cycle = TradingCycle(cfg, DummyLLMClient(), SimulatedFeed(seed=1), requested_leverage=1.0)
+    snapshot = cycle.fetch_snapshot("TEST_SYMBOL")
+    artifacts = cycle.run_cycle_with_snapshot(snapshot, account_equity=cfg.starting_paper_equity)
+    assert artifacts.decision.trade_plan.symbol == "TEST_SYMBOL"
+    assert artifacts.decision.trade_plan.entry_price == snapshot.last_price
+
+
 def test_circuit_breaker_blocks_new_signal_after_large_simulated_drawdown():
     cfg = DEFAULT_CONFIG
     breaker = DailyCircuitBreaker(

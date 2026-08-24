@@ -98,3 +98,50 @@ def test_close_action_realizes_pnl_and_removes_position():
     broker.execute(close_decision, human_approved=True)
     assert "TEST" not in broker.positions
     assert broker.realized_pnl > 0
+
+
+def test_repeated_buy_nets_into_weighted_average_entry_instead_of_resetting():
+    broker = PaperBroker(cash_equity=1_000_000)
+    broker.execute(_decision(entry=100.0, pct=0.10, leverage=1.0), human_approved=True)
+    first_quantity = broker.positions["TEST"].quantity
+
+    broker.execute(_decision(entry=110.0, pct=0.10, leverage=1.0), human_approved=True)
+    pos = broker.positions["TEST"]
+
+    # quantity should have grown (added to, not replaced)...
+    assert pos.quantity > first_quantity
+    # ...and the average entry price should sit between the two fill prices,
+    # not be reset to the second tick's price (100 < avg < 110).
+    assert 100.0 < pos.avg_entry_price < 110.0
+    # so unrealized PnL at the latest price is no longer forced to zero.
+    assert broker.equity({"TEST": 110.0}) > broker.equity({"TEST": 100.0})
+
+
+def test_opposite_direction_order_partially_reduces_and_realizes_pnl():
+    broker = PaperBroker(cash_equity=1_000_000)
+    broker.execute(_decision(entry=100.0, pct=0.10, leverage=1.0), human_approved=True)
+    original_quantity = broker.positions["TEST"].quantity
+    original_avg = broker.positions["TEST"].avg_entry_price
+
+    # A small SELL at a higher price should partially reduce the long and
+    # realize a profit on the closed slice, without wiping the cost basis
+    # of what's left.
+    small_sell = _decision(action=Action.SELL, entry=120.0, pct=0.01, leverage=1.0)
+    broker.execute(small_sell, human_approved=True)
+
+    assert "TEST" in broker.positions
+    assert broker.positions["TEST"].quantity < original_quantity
+    assert broker.positions["TEST"].quantity > 0
+    assert broker.positions["TEST"].avg_entry_price == original_avg
+    assert broker.realized_pnl > 0
+
+
+def test_opposite_direction_order_larger_than_position_flips_it():
+    broker = PaperBroker(cash_equity=1_000_000)
+    broker.execute(_decision(entry=100.0, pct=0.10, leverage=1.0), human_approved=True)
+
+    big_sell = _decision(action=Action.SELL, entry=90.0, pct=1.0, leverage=1.0)
+    broker.execute(big_sell, human_approved=True)
+
+    assert broker.positions["TEST"].quantity < 0  # now short
+    assert broker.positions["TEST"].avg_entry_price == 90.0

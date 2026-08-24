@@ -42,6 +42,20 @@ class PaperBroker:
         return self.cash_equity + unrealized
 
     def execute(self, decision: FinalDecision, human_approved: bool) -> None:
+        """Books a decision, netting into any existing position for the
+        symbol rather than replacing it.
+
+        A repeated BUY on top of an open long is folded in as a
+        weighted-average entry price, not reset to the new tick's price —
+        resetting it would silently zero out unrealized PnL on every tick
+        (that used to be exactly what happened here; a continuous `watch`
+        session or `backtest` run that kept re-confirming the same signal
+        would show a perfectly flat equity curve no matter what the market
+        did). An order in the opposite direction closes/reduces the
+        existing position first, realizing PnL on the closed portion, and
+        only opens a position on the other side if it was larger than what
+        was needed to flatten the original one.
+        """
         if not human_approved:
             raise HumanApprovalRequiredError(
                 "PaperBroker.execute requires human_approved=True; no order is "
@@ -51,16 +65,8 @@ class PaperBroker:
             raise ValueError("Cannot execute a decision that was blocked by risk controls.")
 
         plan = decision.trade_plan
-        notional = (
-            self.equity({plan.symbol: plan.entry_price})
-            * decision.risk_verdict.adjusted_position_pct_of_equity
-            * decision.risk_verdict.adjusted_leverage
-        )
-        quantity = notional / plan.entry_price if plan.entry_price else 0.0
 
-        if plan.action == Action.SELL:
-            quantity = -quantity
-        elif plan.action == Action.CLOSE:
+        if plan.action == Action.CLOSE:
             existing = self.positions.pop(plan.symbol, None)
             if existing is not None:
                 pnl = existing.unrealized_pnl(plan.entry_price)
@@ -68,17 +74,78 @@ class PaperBroker:
                 self.cash_equity += pnl
                 self._log(plan.symbol, "close", existing.quantity, plan.entry_price, pnl)
             return
-        elif plan.action == Action.HOLD:
+        if plan.action == Action.HOLD:
             return
 
-        self.positions[plan.symbol] = Position(
-            symbol=plan.symbol,
-            quantity=quantity,
-            avg_entry_price=plan.entry_price,
-            leverage=decision.risk_verdict.adjusted_leverage,
-            stop_loss_price=plan.stop_loss_price,
+        notional = (
+            self.equity({plan.symbol: plan.entry_price})
+            * decision.risk_verdict.adjusted_position_pct_of_equity
+            * decision.risk_verdict.adjusted_leverage
         )
-        self._log(plan.symbol, plan.action.value, quantity, plan.entry_price, None)
+        order_quantity = notional / plan.entry_price if plan.entry_price else 0.0
+        if plan.action == Action.SELL:
+            order_quantity = -order_quantity
+
+        existing = self.positions.get(plan.symbol)
+        opening_or_same_direction = existing is None or (existing.quantity >= 0) == (order_quantity >= 0)
+
+        if opening_or_same_direction:
+            if existing is None:
+                new_quantity, new_avg_price = order_quantity, plan.entry_price
+            else:
+                new_quantity = existing.quantity + order_quantity
+                new_avg_price = (
+                    (existing.quantity * existing.avg_entry_price + order_quantity * plan.entry_price)
+                    / new_quantity
+                    if new_quantity != 0
+                    else plan.entry_price
+                )
+            self.positions[plan.symbol] = Position(
+                symbol=plan.symbol,
+                quantity=new_quantity,
+                avg_entry_price=new_avg_price,
+                leverage=decision.risk_verdict.adjusted_leverage,
+                stop_loss_price=plan.stop_loss_price,
+            )
+            self._log(plan.symbol, plan.action.value, order_quantity, plan.entry_price, None)
+            return
+
+        # Opposite direction from the existing position: close/reduce it first.
+        closing_qty = min(abs(order_quantity), abs(existing.quantity))
+        closed_signed_qty = closing_qty if existing.quantity > 0 else -closing_qty
+        pnl = (plan.entry_price - existing.avg_entry_price) * closed_signed_qty
+        self.realized_pnl += pnl
+        self.cash_equity += pnl
+
+        remaining_quantity = existing.quantity + order_quantity
+        if remaining_quantity == 0:
+            del self.positions[plan.symbol]
+            self._log(plan.symbol, "close", -closed_signed_qty, plan.entry_price, pnl)
+        elif (remaining_quantity >= 0) == (existing.quantity >= 0):
+            existing.quantity = remaining_quantity
+            existing.leverage = decision.risk_verdict.adjusted_leverage
+            existing.stop_loss_price = plan.stop_loss_price
+            self._log(plan.symbol, "reduce", -closed_signed_qty, plan.entry_price, pnl)
+        else:
+            self.positions[plan.symbol] = Position(
+                symbol=plan.symbol,
+                quantity=remaining_quantity,
+                avg_entry_price=plan.entry_price,
+                leverage=decision.risk_verdict.adjusted_leverage,
+                stop_loss_price=plan.stop_loss_price,
+            )
+            self._log(plan.symbol, "flip", remaining_quantity, plan.entry_price, pnl)
+
+    def apply_trailing_stops(self, current_prices: dict[str, float], trailing_stop_pct: float) -> None:
+        """Ratchets each open position's stop-loss toward the current price
+        (never loosens it). No-op for symbols with no price given here."""
+        from trading_agent.engine.risk_controls import trailing_stop_price
+
+        for symbol, pos in self.positions.items():
+            price = current_prices.get(symbol)
+            if price is None:
+                continue
+            pos.stop_loss_price = trailing_stop_price(pos.quantity, pos.stop_loss_price, price, trailing_stop_pct)
 
     def check_stop_losses(self, current_prices: dict[str, float]) -> list[str]:
         """Auto-close any simulated position whose stop has been breached.

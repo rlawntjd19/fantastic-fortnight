@@ -44,29 +44,65 @@ class MarketDataProvider(Protocol):
         ...
 
 
+def _generate_bars(rng: random.Random, start_price: float, n: int, start_index: int = 0) -> list[Bar]:
+    price = start_price
+    bars: list[Bar] = []
+    for i in range(n):
+        drift = rng.uniform(-0.01, 0.011)
+        open_ = price
+        close = max(0.01, open_ * (1 + drift))
+        high = max(open_, close) * (1 + abs(rng.uniform(0, 0.004)))
+        low = min(open_, close) * (1 - abs(rng.uniform(0, 0.004)))
+        volume = rng.uniform(1_000, 10_000)
+        bars.append(Bar(start_index + i, open_, high, low, close, volume))
+        price = close
+    return bars
+
+
+@dataclass
+class _SymbolState:
+    rng: random.Random
+    bars: list[Bar]
+    next_index: int
+
+
 class SimulatedFeed:
-    """Deterministic pseudo-random-walk feed for demos, backtests and tests."""
+    """Deterministic pseudo-random-walk feed for demos, backtests and tests.
+
+    Each symbol gets its own walk, seeded from `(seed, symbol)` so two
+    different tickers never look identical and the same ticker is
+    reproducible across fresh `SimulatedFeed` instances. Within a single
+    instance, calling `get_snapshot` again for a symbol that's already
+    been seen advances that symbol's walk by one more bar instead of
+    regenerating it from scratch — this is what makes `cli.py watch`'s
+    continuous loop see prices actually move between ticks, and what
+    keeps a single one-shot call (the normal `signal` command) stable.
+    """
 
     def __init__(self, seed: int = 7, start_price: float = 1000.0, n_bars: int = 120) -> None:
-        self._rng = random.Random(seed)
+        self._seed = seed
         self._start_price = start_price
         self._n_bars = n_bars
+        self._state: dict[str, _SymbolState] = {}
 
     def get_snapshot(self, symbol: str) -> MarketSnapshot:
-        price = self._start_price
-        bars: list[Bar] = []
-        for i in range(self._n_bars):
-            drift = self._rng.uniform(-0.01, 0.011)
-            open_ = price
-            close = max(0.01, open_ * (1 + drift))
-            high = max(open_, close) * (1 + abs(self._rng.uniform(0, 0.004)))
-            low = min(open_, close) * (1 - abs(self._rng.uniform(0, 0.004)))
-            volume = self._rng.uniform(1_000, 10_000)
-            bars.append(Bar(i, open_, high, low, close, volume))
-            price = close
+        state = self._state.get(symbol)
+        if state is None:
+            rng = random.Random(f"{self._seed}:{symbol}")
+            # Give different tickers visibly different price levels, not
+            # just different wiggles, so it's obvious the symbol mattered.
+            symbol_start_price = self._start_price * rng.uniform(0.3, 3.0)
+            bars = _generate_bars(rng, symbol_start_price, self._n_bars)
+            state = _SymbolState(rng=rng, bars=bars, next_index=self._n_bars)
+            self._state[symbol] = state
+        else:
+            new_bar = _generate_bars(state.rng, state.bars[-1].close, 1, start_index=state.next_index)
+            state.bars = (state.bars + new_bar)[-self._n_bars :]
+            state.next_index += 1
+
         return MarketSnapshot(
             symbol=symbol,
-            bars=bars,
+            bars=list(state.bars),
             fundamentals={"pe_ratio": 12.4, "revenue_growth_yoy": 0.18},
             news_headlines=[
                 f"{symbol} sees institutional buying return after pullback",
