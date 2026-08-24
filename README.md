@@ -18,7 +18,9 @@ quickstart](https://colab.research.google.com/github/rlawntjd19/fantastic-fortni
 notebook and run it from the browser — nothing to install locally.
 
 Prefer a point-and-click control panel over the terminal? See "Web UI"
-below (`pip install -r requirements-web.txt && python -m trading_agent.webapp`).
+below (`pip install -r requirements-web.txt && python -m trading_agent.webapp`) —
+or, in the Colab notebook above, run its "브라우저 제어판(웹 UI) 열기" cell
+to open the same panel in a new tab with nothing installed locally.
 
 ## Why this shape
 
