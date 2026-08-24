@@ -37,6 +37,32 @@ class RiskLimits:
 
 
 @dataclass(frozen=True)
+class KronosConfig:
+    """Settings for the optional Kronos price-forecasting analyst.
+
+    Off by default: Kronos (https://github.com/shiyu-coder/Kronos) is not
+    on PyPI, needs torch, and downloads model weights on first use, so it
+    must never be a silent hard requirement for the rest of the pipeline.
+    Flip `enabled` on only after following the install steps in README.md;
+    if construction fails anyway, `forecast.factory.build_price_forecaster`
+    falls back to the offline heuristic rather than crashing.
+    """
+
+    enabled: bool = os.environ.get("TRADING_AGENT_KRONOS_ENABLED", "false").lower() == "true"
+    model_name: str = os.environ.get("TRADING_AGENT_KRONOS_MODEL", "NeoQuasar/Kronos-small")
+    tokenizer_name: str = os.environ.get(
+        "TRADING_AGENT_KRONOS_TOKENIZER", "NeoQuasar/Kronos-Tokenizer-base"
+    )
+    max_context: int = int(os.environ.get("TRADING_AGENT_KRONOS_MAX_CONTEXT", "512"))
+    device: str = os.environ.get("TRADING_AGENT_KRONOS_DEVICE", "cpu")
+    pred_len: int = int(os.environ.get("TRADING_AGENT_KRONOS_PRED_LEN", "10"))
+    # Number of forward samples drawn to estimate forecast uncertainty.
+    # Kronos is autoregressive-sampling based, so >1 sample gives a cheap
+    # ensemble spread instead of a single point forecast.
+    sample_count: int = int(os.environ.get("TRADING_AGENT_KRONOS_SAMPLES", "5"))
+
+
+@dataclass(frozen=True)
 class Config:
     model_name: str = os.environ.get("TRADING_AGENT_MODEL", "claude-sonnet-5")
     anthropic_api_key: str | None = os.environ.get("ANTHROPIC_API_KEY")
@@ -44,6 +70,7 @@ class Config:
         os.environ.get("TRADING_AGENT_STARTING_EQUITY", "10_000_000")
     )
     risk: RiskLimits = field(default_factory=RiskLimits)
+    kronos: KronosConfig = field(default_factory=KronosConfig)
     memory_path: str = os.environ.get(
         "TRADING_AGENT_MEMORY_PATH", "trading_agent_memory.json"
     )

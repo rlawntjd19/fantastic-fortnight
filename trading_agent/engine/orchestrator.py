@@ -9,7 +9,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from trading_agent.agents.analysts import FundamentalAnalyst, SentimentAnalyst, TechnicalAnalyst
+from trading_agent.agents.analysts import (
+    ForecastAnalyst,
+    FundamentalAnalyst,
+    SentimentAnalyst,
+    TechnicalAnalyst,
+)
 from trading_agent.agents.risk import AggressiveDebator, ConservativeDebator, NeutralDebator
 from trading_agent.agents.schemas import AnalystReport, FinalDecision
 from trading_agent.agents.trader import Trader
@@ -17,6 +22,8 @@ from trading_agent.agents.researchers import ResearchManager
 from trading_agent.config import Config
 from trading_agent.data.providers import MarketDataProvider
 from trading_agent.engine.risk_controls import DailyCircuitBreaker, enforce_hard_limits
+from trading_agent.forecast.base import PriceForecaster
+from trading_agent.forecast.factory import build_price_forecaster
 from trading_agent.llm.client import LLMClient
 
 
@@ -40,6 +47,7 @@ class TradingCycle:
         data_provider: MarketDataProvider,
         requested_leverage: float = 1.0,
         requested_tranches: int = 2,
+        forecaster: PriceForecaster | None = None,
     ) -> None:
         self._config = config
         self._data_provider = data_provider
@@ -48,6 +56,9 @@ class TradingCycle:
         self._technical = TechnicalAnalyst(llm)
         self._fundamental = FundamentalAnalyst(llm)
         self._sentiment = SentimentAnalyst(llm)
+        self._forecast = ForecastAnalyst(
+            llm, forecaster or build_price_forecaster(config), pred_len=config.kronos.pred_len
+        )
         self._research_manager = ResearchManager(llm)
         self._trader = Trader(llm, requested_tranches=requested_tranches)
         self._aggressive = AggressiveDebator(llm)
@@ -66,6 +77,7 @@ class TradingCycle:
             self._technical.analyze(snapshot),
             self._fundamental.analyze(snapshot),
             self._sentiment.analyze(snapshot),
+            self._forecast.analyze(snapshot),
         ]
 
         research = self._research_manager.debate(reports)

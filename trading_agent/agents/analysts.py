@@ -10,6 +10,7 @@ from __future__ import annotations
 from trading_agent.agents.schemas import AnalystReport, Signal
 from trading_agent.data.indicators import momentum, rsi, sma
 from trading_agent.data.providers import MarketSnapshot
+from trading_agent.forecast.base import PriceForecaster
 from trading_agent.llm.client import LLMClient
 
 
@@ -118,6 +119,61 @@ class SentimentAnalyst:
         summary = self._llm.narrate(
             system="You are a terse news-sentiment analyst. One sentence, no advice.",
             user="\n".join(headlines) or "No headlines available.",
+        )
+        return AnalystReport(self.name, signal, confidence, summary, points)
+
+
+class ForecastAnalyst:
+    """Wraps a `PriceForecaster` (Kronos, or the offline heuristic fallback).
+
+    Like the other analysts, the forecaster only supplies numbers
+    (predicted return, sample dispersion); this class turns those into a
+    signal/confidence using a fixed, inspectable rule, and the forecaster
+    itself never sees or influences position sizing or leverage.
+    """
+
+    name = "forecast_analyst"
+
+    # A pred_len-horizon move of this size or larger maps to full-confidence
+    # bullish/bearish; smaller moves scale down linearly. Kept conservative
+    # since Kronos's own docs are explicit that it forecasts prices, not
+    # profitable trades.
+    _FULL_CONFIDENCE_MOVE = 0.05
+    # Below this fraction of the full-confidence move, treat the forecast
+    # as noise rather than a directional call (a return-fraction score
+    # needs its own threshold — it isn't comparable to the raw point
+    # totals `_score_to_signal`'s fixed 0.25 cutoff was built for).
+    _NEUTRAL_BAND = 0.20 * _FULL_CONFIDENCE_MOVE
+
+    def __init__(self, llm: LLMClient, forecaster: PriceForecaster, pred_len: int = 10) -> None:
+        self._llm = llm
+        self._forecaster = forecaster
+        self._pred_len = pred_len
+
+    def analyze(self, snapshot: MarketSnapshot) -> AnalystReport:
+        result = self._forecaster.forecast(snapshot.closes, self._pred_len)
+
+        raw_confidence = min(1.0, abs(result.expected_return) / self._FULL_CONFIDENCE_MOVE)
+        if result.expected_return > self._NEUTRAL_BAND:
+            signal = Signal.BULLISH
+        elif result.expected_return < -self._NEUTRAL_BAND:
+            signal = Signal.BEARISH
+        else:
+            signal = Signal.NEUTRAL
+        # Wide sample dispersion (the model's own samples disagree on
+        # direction/magnitude) should pull confidence toward zero rather
+        # than letting a noisy point estimate look decisive.
+        uncertainty_penalty = 1.0 / (1.0 + result.dispersion / self._FULL_CONFIDENCE_MOVE)
+        confidence = raw_confidence * uncertainty_penalty
+
+        points = [
+            f"{result.source} {self._pred_len}-bar forecast: "
+            f"{result.expected_return * 100:+.1f}% expected move "
+            f"(dispersion {result.dispersion * 100:.1f}%, n={result.sample_count})"
+        ]
+        summary = self._llm.narrate(
+            system="You are a terse quant summarizing a price forecast. One sentence, no advice.",
+            user=points[0],
         )
         return AnalystReport(self.name, signal, confidence, summary, points)
 

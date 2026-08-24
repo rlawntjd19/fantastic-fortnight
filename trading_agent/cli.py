@@ -11,6 +11,7 @@ Research/education tool. Not investment advice.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import sys
 
 from trading_agent.config import DEFAULT_CONFIG
@@ -67,19 +68,32 @@ def main(argv: list[str] | None = None) -> int:
         help="After showing the decision, ask for interactive y/n approval "
         "before booking it into the local paper broker.",
     )
+    signal_cmd.add_argument(
+        "--kronos",
+        action="store_true",
+        help="Use the Kronos price-forecasting analyst instead of the offline "
+        "heuristic fallback. Requires Kronos to be installed separately — "
+        "see README.md. Falls back automatically if unavailable.",
+    )
 
     args = parser.parse_args(argv)
 
     if args.command == "signal":
-        llm = build_llm_client(DEFAULT_CONFIG)
+        config = DEFAULT_CONFIG
+        if args.kronos:
+            config = dataclasses.replace(
+                config, kronos=dataclasses.replace(config.kronos, enabled=True)
+            )
+
+        llm = build_llm_client(config)
         provider = SimulatedFeed()
-        broker = PaperBroker(cash_equity=DEFAULT_CONFIG.starting_paper_equity)
+        broker = PaperBroker(cash_equity=config.starting_paper_equity)
         breaker = DailyCircuitBreaker(
-            starting_equity=DEFAULT_CONFIG.starting_paper_equity,
-            limit_pct=DEFAULT_CONFIG.risk.daily_loss_circuit_breaker_pct,
+            starting_equity=config.starting_paper_equity,
+            limit_pct=config.risk.daily_loss_circuit_breaker_pct,
         )
         cycle = TradingCycle(
-            DEFAULT_CONFIG,
+            config,
             llm,
             provider,
             requested_leverage=args.leverage,

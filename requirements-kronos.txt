@@ -1,0 +1,15 @@
+# Optional extra for the Kronos price-forecasting analyst
+# (trading_agent/forecast/kronos_forecaster.py). Not needed unless
+# TRADING_AGENT_KRONOS_ENABLED=true / `--kronos` is used.
+#
+# Kronos itself is not published on PyPI. Install it with:
+#   git clone https://github.com/shiyu-coder/Kronos.git
+#   pip install -r Kronos/requirements.txt
+#   export PYTHONPATH=$PYTHONPATH:$(pwd)/Kronos
+#
+# This file covers the extra runtime deps this project's adapter itself
+# needs on top of that (Kronos's own requirements.txt pins the rest,
+# e.g. the matching torch/huggingface_hub versions for the checkpoints).
+torch>=2.1.0
+pandas>=2.0.0
+huggingface_hub>=0.24.0

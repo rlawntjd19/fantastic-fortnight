@@ -19,8 +19,23 @@ def _run(leverage=20.0, tranches=5, config=None):
 
 def test_cycle_runs_fully_offline_and_produces_a_decision():
     artifacts = _run()
-    assert len(artifacts.analyst_reports) == 3
+    # technical, fundamental, sentiment, forecast (heuristic fallback by default)
+    assert len(artifacts.analyst_reports) == 4
+    assert {r.agent_name for r in artifacts.analyst_reports} == {
+        "technical_analyst",
+        "fundamental_analyst",
+        "sentiment_analyst",
+        "forecast_analyst",
+    }
     assert artifacts.decision.requires_human_approval is True
+
+
+def test_forecast_analyst_uses_heuristic_fallback_when_kronos_disabled():
+    artifacts = _run()
+    forecast_report = next(
+        r for r in artifacts.analyst_reports if r.agent_name == "forecast_analyst"
+    )
+    assert forecast_report.key_points[0].startswith("heuristic ")
 
 
 def test_cycle_never_exceeds_configured_leverage_ceiling_regardless_of_request():
