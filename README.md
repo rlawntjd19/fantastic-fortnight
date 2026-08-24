@@ -11,6 +11,10 @@ order, holds brokerage credentials, or auto-executes anything.
 New here? [USAGE.md](USAGE.md) is a step-by-step walkthrough (Korean) for
 running this for the first time. This README covers the design instead.
 
+No Python installed, or don't want to install anything? [Open the Colab
+quickstart](https://colab.research.google.com/github/rlawntjd19/fantastic-fortnight/blob/claude/ai-investment-agent-design-et70s0/colab_quickstart.ipynb)
+notebook and run it from the browser — nothing to install locally.
+
 ## Why this shape
 
 This design is a response to a common but risky pattern: a single LLM
