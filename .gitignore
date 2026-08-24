@@ -3,4 +3,5 @@ __pycache__/
 .venv/
 *.egg-info/
 trading_agent_memory.json
+trading_agent_journal.jsonl
 .env

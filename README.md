@@ -17,6 +17,9 @@ No Python installed, or don't want to install anything? [Open the Colab
 quickstart](https://colab.research.google.com/github/rlawntjd19/fantastic-fortnight/blob/claude/ai-investment-agent-design-et70s0/colab_quickstart.ipynb)
 notebook and run it from the browser — nothing to install locally.
 
+Prefer a point-and-click control panel over the terminal? See "Web UI"
+below (`pip install -r requirements-web.txt && python -m trading_agent.webapp`).
+
 ## Why this shape
 
 This design responds to a common, risky pattern: a single LLM call is
@@ -303,6 +306,52 @@ and executes with no oversight" pattern its guardrails exist to prevent.
 `tool_jina_search.py` is optional (needs `JINA_API_KEY`, stdlib
 `urllib` only, no new dependency) — `SentimentAnalyst` already has a
 working, keyless news source via `YFinanceFeed`'s own `ticker.news`.
+
+## Web UI (`trading_agent/webapp/`)
+
+A browser control panel over the same three modes the CLI has
+(signal/watch/backtest) — nothing in `agents/`, `engine/`, or `data/`
+was changed to build it; it's a new layer on top:
+
+```bash
+pip install -r requirements-web.txt
+python -m trading_agent.webapp
+# → http://127.0.0.1:8000
+```
+
+* **Backend**: FastAPI + a WebSocket per session (`server.py`).
+  `session.SessionRunner` runs the pipeline in a background thread and
+  emits typed events (`status`, `thought`, `tick`/`decision`,
+  `portfolio`, `final_report`, `error`) onto a thread-safe queue; the
+  WebSocket relays them to the browser and accepts
+  `{"action": "start"|"pause"|"resume"|"stop"|"reset"}` control
+  messages. Chose FastAPI/WebSocket over Streamlit/Gradio because the
+  interactive requirement here — pause a running loop, watch a
+  multi-stage pipeline stream in real time — needs a real bidirectional
+  connection, not a rerun-the-whole-script model.
+* **Frontend**: one dependency-free HTML/CSS/JS page
+  (`static/index.html`, no build step) — reasonable for a single-
+  operator internal tool; React/Next.js would be the natural upgrade if
+  this ever needs to be a multi-user product.
+* **Non-breaking integration**: `TradingCycle.run_cycle_with_snapshot`
+  gained an optional `on_stage(name, payload)` hook (default `None`,
+  zero behavior change for every existing caller) so the session layer
+  can stream each analyst report / debate stage / risk verdict as it's
+  actually computed, rather than faking progress after the fact.
+* **Execution stays autonomous**, same as the CLI: Start/Pause/Stop are
+  process controls, not a trade-by-trade approval gate — see
+  `engine/paper_broker.py` for why that's fine here.
+* **Export**: JSON/CSV/Markdown via REST endpoints
+  (`/api/sessions/{id}/export.{json,csv,md}`); PDF via the browser's own
+  print dialog (a print stylesheet hides the control panel) rather than
+  a new PDF-generation dependency.
+* Tests: `tests/test_webapp_session.py` runs `SessionRunner` directly
+  (no server, no browser); `tests/test_webapp_server.py` drives the
+  REST + WebSocket endpoints with FastAPI's `TestClient`. Both skip
+  cleanly if `requirements-web.txt` isn't installed. The full flow
+  (create → start → pause → resume → stop, all three modes, exports)
+  was also verified with a real headless-browser pass during
+  development.
 
 ## Tests
 
