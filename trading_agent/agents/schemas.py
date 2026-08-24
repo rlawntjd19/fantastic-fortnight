@@ -61,6 +61,5 @@ class RiskVerdict:
 class FinalDecision:
     trade_plan: TradePlan
     risk_verdict: RiskVerdict
-    requires_human_approval: bool
     status: str  # "pending_approval" | "blocked"
     blocked_reason: str | None = None

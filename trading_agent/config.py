@@ -99,6 +99,9 @@ class Config:
     memory_path: str = os.environ.get(
         "TRADING_AGENT_MEMORY_PATH", "trading_agent_memory.json"
     )
+    journal_path: str = os.environ.get(
+        "TRADING_AGENT_JOURNAL_PATH", "trading_agent_journal.jsonl"
+    )
 
 
 DEFAULT_CONFIG = Config()

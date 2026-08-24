@@ -5,12 +5,9 @@ cannot serve a future bar even by mistake, which is what gives this the
 same "no look-ahead" property purpose-built backtesting frameworks
 enforce, structurally rather than via a separate guard.
 
-Because a backtest replays data that has already happened, entirely
-inside the local `PaperBroker`, running `backtest` at all is itself the
-one human decision needed for every decision in the replay to book
-automatically — there's no live market to protect against here, and a
-per-tick prompt wouldn't tell a human anything they can't already see in
-the final report.
+Every decision that clears risk controls books immediately into the
+local `PaperBroker` (see `engine/paper_broker.py`) — this replays data
+that's already happened, so there's no live market it could affect.
 
 Past performance in the report this produces does not indicate or
 guarantee future results.
@@ -18,9 +15,10 @@ guarantee future results.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 
 from trading_agent.data.providers import MarketSnapshot
-from trading_agent.engine.orchestrator import TradingCycle
+from trading_agent.engine.orchestrator import CycleArtifacts, TradingCycle
 from trading_agent.engine.paper_broker import PaperBroker
 from trading_agent.engine.performance import PerformanceReport, compute_performance
 from trading_agent.engine.risk_controls import DailyCircuitBreaker
@@ -62,10 +60,20 @@ def run_backtest(
     broker: PaperBroker,
     symbol: str,
     breaker: DailyCircuitBreaker | None = None,
+    on_tick: Callable[[int, MarketSnapshot, CycleArtifacts, float], None] | None = None,
+    should_continue: Callable[[], bool] | None = None,
 ) -> BacktestResult:
+    """`on_tick(index, snapshot, artifacts, equity)` fires after every bar,
+    purely observational (e.g. the web UI streams it as a thought/log
+    event) — it can't affect the run. `should_continue()`, checked before
+    each bar, lets a caller stop the replay early (e.g. a UI Stop button);
+    both default to None/always-continue, so existing callers are
+    unaffected.
+    """
     equity_curve: list[tuple[int, float]] = []
+    index = 0
 
-    while not replay.done:
+    while not replay.done and (should_continue is None or should_continue()):
         snapshot = replay.get_snapshot(symbol)
         current_price = snapshot.last_price
 
@@ -77,10 +85,15 @@ def run_backtest(
             snapshot, account_equity=broker.equity({symbol: current_price}), circuit_breaker=breaker
         )
         if artifacts.decision.status == "pending_approval":
-            broker.execute(artifacts.decision, human_approved=True)
+            broker.execute(artifacts.decision)
 
-        equity_curve.append((snapshot.bars[-1].timestamp, broker.equity({symbol: current_price})))
+        equity = broker.equity({symbol: current_price})
+        equity_curve.append((snapshot.bars[-1].timestamp, equity))
+        if on_tick is not None:
+            on_tick(index, snapshot, artifacts, equity)
+
         replay.advance()
+        index += 1
 
     trade_pnls = [t["pnl"] for t in broker.trade_log if t.get("pnl") is not None]
     performance = compute_performance([e for _, e in equity_curve], trade_pnls)

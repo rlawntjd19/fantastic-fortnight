@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from trading_agent.agents.schemas import AnalystReport, Signal
 from trading_agent.data.indicators import momentum, rsi, sma
+from trading_agent.data.macro import MacroDataProvider
 from trading_agent.data.providers import MarketSnapshot
 from trading_agent.forecast.base import PriceForecaster
 from trading_agent.llm.client import LLMClient
@@ -58,16 +59,30 @@ class TechnicalAnalyst:
 
 
 class FundamentalAnalyst:
+    """Company-level fundamentals: valuation, growth, profitability, leverage,
+    and (when the data provider exposes it) sell-side analyst consensus.
+
+    Every field is read defensively (`snapshot.fundamentals.get(...)`) and
+    simply skipped if absent — `YFinanceFeed` already fetches each of these
+    independently so one missing field never blocks the rest; the same
+    goes here for scoring.
+    """
+
     name = "fundamental_analyst"
+    # Sum of every term's max |contribution| below — keeps the same
+    # normalization approach TechnicalAnalyst uses (max_abs_score = the
+    # largest possible score magnitude, not a special threshold).
+    _MAX_ABS_SCORE = 5.0
 
     def __init__(self, llm: LLMClient) -> None:
         self._llm = llm
 
     def analyze(self, snapshot: MarketSnapshot) -> AnalystReport:
-        pe = snapshot.fundamentals.get("pe_ratio")
-        growth = snapshot.fundamentals.get("revenue_growth_yoy")
+        f = snapshot.fundamentals
         points: list[str] = []
         score = 0.0
+
+        pe = f.get("pe_ratio")
         if pe is not None:
             if pe < 15:
                 score += 1
@@ -77,11 +92,51 @@ class FundamentalAnalyst:
                 points.append(f"P/E {pe:.1f}: richly valued")
             else:
                 points.append(f"P/E {pe:.1f}: fair value")
+
+        growth = f.get("revenue_growth_yoy")
         if growth is not None:
             score += 1 if growth > 0.10 else (-0.5 if growth < 0 else 0)
             points.append(f"YoY revenue growth {growth * 100:.1f}%")
 
-        signal, confidence = _score_to_signal(score, max_abs_score=2.0)
+        forward_pe = f.get("forward_pe")
+        if forward_pe is not None and pe is not None and pe > 0:
+            if forward_pe < pe:
+                score += 0.5
+                points.append(f"Forward P/E {forward_pe:.1f} < trailing {pe:.1f}: earnings expected to grow")
+            elif forward_pe > pe:
+                score -= 0.5
+                points.append(f"Forward P/E {forward_pe:.1f} > trailing {pe:.1f}: earnings expected to shrink")
+
+        roe = f.get("return_on_equity")
+        if roe is not None:
+            score += 0.5 if roe > 0.15 else (-0.5 if roe < 0.05 else 0)
+            points.append(f"Return on equity {roe * 100:.1f}%")
+
+        margin = f.get("profit_margin")
+        if margin is not None:
+            score += 0.5 if margin > 0.15 else (-1 if margin < 0 else 0)
+            points.append(f"Profit margin {margin * 100:.1f}%")
+
+        debt_to_equity = f.get("debt_to_equity")
+        if debt_to_equity is not None:
+            # yfinance reports this as a percentage (e.g. 150 == 150%), not a ratio.
+            score += -0.5 if debt_to_equity > 200 else (0.5 if debt_to_equity < 50 else 0)
+            points.append(f"Debt/Equity {debt_to_equity:.0f}%")
+
+        recs = f.get("analyst_recommendations")
+        if recs:
+            bullish_count = recs.get("strong_buy", 0) + recs.get("buy", 0)
+            bearish_count = recs.get("sell", 0) + recs.get("strong_sell", 0)
+            if bullish_count > bearish_count:
+                score += 0.5
+            elif bearish_count > bullish_count:
+                score -= 0.5
+            points.append(
+                f"Analyst consensus: {bullish_count} buy-side vs {bearish_count} sell-side "
+                f"({recs.get('hold', 0)} hold)"
+            )
+
+        signal, confidence = _score_to_signal(score, max_abs_score=self._MAX_ABS_SCORE)
         summary = self._llm.narrate(
             system="You are a terse fundamental analyst. One sentence, no advice.",
             user="\n".join(points) or "No fundamental data available.",
@@ -119,6 +174,68 @@ class SentimentAnalyst:
         summary = self._llm.narrate(
             system="You are a terse news-sentiment analyst. One sentence, no advice.",
             user="\n".join(headlines) or "No headlines available.",
+        )
+        return AnalystReport(self.name, signal, confidence, summary, points)
+
+
+class MacroAnalyst:
+    """Reads market-wide macro context (rate regime, VIX, dollar strength)
+    rather than anything company-specific — the same separation a trading
+    desk draws between a stock analyst and a macro/rates desk. See
+    `data/macro.py` for the provider (`StaticMacroProvider` offline,
+    `YFinanceMacroProvider` when live data is enabled).
+    """
+
+    name = "macro_analyst"
+    _MAX_ABS_SCORE = 2.0
+
+    def __init__(self, llm: LLMClient, macro_provider: MacroDataProvider) -> None:
+        self._llm = llm
+        self._macro_provider = macro_provider
+
+    def analyze(self, snapshot: MarketSnapshot) -> AnalystReport:
+        macro = self._macro_provider.get_macro_snapshot()
+        points: list[str] = []
+        score = 0.0
+
+        if macro.ten_year_yield_change_pct is not None:
+            if macro.ten_year_yield_change_pct > 0.05:
+                score -= 0.5
+                points.append(
+                    f"10Y yield up {macro.ten_year_yield_change_pct * 100:.1f}%: tightening headwind for risk assets"
+                )
+            elif macro.ten_year_yield_change_pct < -0.05:
+                score += 0.5
+                points.append(
+                    f"10Y yield down {macro.ten_year_yield_change_pct * 100:.1f}%: easier conditions for risk assets"
+                )
+
+        if macro.vix_level is not None:
+            if macro.vix_level > 25:
+                score -= 1
+                points.append(f"VIX {macro.vix_level:.1f}: elevated fear, risk-off regime")
+            elif macro.vix_level < 15:
+                score += 0.5
+                points.append(f"VIX {macro.vix_level:.1f}: calm, risk-on regime")
+            else:
+                points.append(f"VIX {macro.vix_level:.1f}: normal range")
+
+        if macro.dollar_index_change_pct is not None:
+            if macro.dollar_index_change_pct > 0.02:
+                score -= 0.5
+                points.append(
+                    f"Dollar index up {macro.dollar_index_change_pct * 100:.1f}%: headwind for risk assets"
+                )
+            elif macro.dollar_index_change_pct < -0.02:
+                score += 0.5
+                points.append(
+                    f"Dollar index down {macro.dollar_index_change_pct * 100:.1f}%: tailwind for risk assets"
+                )
+
+        signal, confidence = _score_to_signal(score, max_abs_score=self._MAX_ABS_SCORE)
+        summary = self._llm.narrate(
+            system="You are a terse macro strategist. One sentence, no advice.",
+            user="\n".join(points) or "No macro data available.",
         )
         return AnalystReport(self.name, signal, confidence, summary, points)
 

@@ -1,15 +1,15 @@
 """Command-line entrypoint.
 
-    python -m trading_agent.cli signal SYMBOL            # show a proposed decision, once
-    python -m trading_agent.cli signal SYMBOL --approve   # then ask to book it in paper broker
-    python -m trading_agent.cli watch SYMBOL --auto-approve --dashboard
-        # run cycles continuously on an interval, auto-booking decisions
-        # that clear risk checks into the paper broker, with a local
-        # browser dashboard to watch equity/positions/decisions live.
+    python -m trading_agent.cli signal SYMBOL              # one cycle, books immediately if approved by risk checks
+    python -m trading_agent.cli watch SYMBOL --dashboard    # runs continuously, booking every tick, with a live browser dashboard
+    python -m trading_agent.cli backtest SYMBOL --live      # replays real historical data through the same pipeline
 
-This tool never places a real order — `--approve` and `--auto-approve`
-only ever affect the local, in-memory PaperBroker ledger for this
-process. Nothing here promises or can guarantee profit.
+Every decision that clears risk controls (`engine/risk_controls.py`)
+books immediately into the local, in-memory `PaperBroker` — there is no
+per-decision prompt. This is safe only because nothing in this codebase
+connects to a real brokerage or exchange; see `engine/paper_broker.py`
+for why that reasoning does not extend to a real-money connector.
+Nothing here promises or can guarantee profit.
 
 Research/education tool. Not investment advice.
 """
@@ -25,6 +25,7 @@ from trading_agent.dashboard import DashboardState, start_dashboard_server
 from trading_agent.data.factory import build_market_data_provider
 from trading_agent.data.providers import SimulatedFeed
 from trading_agent.engine.backtest import ReplayFeed, run_backtest
+from trading_agent.engine.journal import TradeJournal, record_execution
 from trading_agent.engine.live_runner import TickResult, run_loop
 from trading_agent.engine.orchestrator import TradingCycle
 from trading_agent.engine.paper_broker import PaperBroker
@@ -118,13 +119,11 @@ def _run_signal(args) -> int:
 
     _print_decision(artifacts)
 
-    if args.approve and artifacts.decision.status == "pending_approval":
-        answer = input("\nBook this into the paper broker? [y/N] ").strip().lower()
-        if answer == "y":
-            broker.execute(artifacts.decision, human_approved=True)
-            print("Booked into paper broker (simulation only).")
-        else:
-            print("Not booked.")
+    if artifacts.decision.status == "pending_approval":
+        broker.execute(artifacts.decision)
+        record_execution(artifacts, broker, TradeJournal(config.journal_path), cycle.reflection_memory)
+        print("Booked into paper broker (simulation only — no real order was placed).")
+        print(f"Journaled to {config.journal_path}")
     return 0
 
 
@@ -170,9 +169,8 @@ def _run_watch(args) -> int:
     print("=" * 60)
     print("DISCLAIMER: paper trading only. No system can guarantee profit —")
     print("this loop can lose simulated money just as easily as make it.")
+    print("Every decision that clears risk checks books immediately, every tick.")
     print("=" * 60)
-    if not args.auto_approve:
-        print("(--auto-approve is off: this will only preview decisions, nothing is booked.)")
 
     dashboard_server = None
     dashboard_state = None
@@ -180,6 +178,8 @@ def _run_watch(args) -> int:
         dashboard_state = DashboardState()
         dashboard_server = start_dashboard_server(dashboard_state, port=args.dashboard_port)
         print(f"Dashboard: http://127.0.0.1:{args.dashboard_port}")
+
+    journal = TradeJournal(config.journal_path)
 
     def on_tick(i: int, result: TickResult) -> None:
         plan = result.artifacts.decision.trade_plan
@@ -191,7 +191,8 @@ def _run_watch(args) -> int:
         if result.stopped_out:
             print(f"  stopped out: {result.stopped_out}")
         if result.booked:
-            print("  -> booked automatically (--auto-approve)")
+            print("  -> booked")
+            record_execution(result.artifacts, broker, journal, cycle.reflection_memory)
         print(f"  paper equity={result.equity:,.0f}  realized_pnl={broker.realized_pnl:,.0f}")
 
         if dashboard_state is not None:
@@ -209,7 +210,6 @@ def _run_watch(args) -> int:
             broker,
             args.symbol,
             breaker,
-            args.auto_approve,
             args.interval,
             args.max_iterations,
             on_tick,
@@ -238,7 +238,10 @@ def _run_backtest(args) -> int:
 
         try:
             full_snapshot = YFinanceFeed(
-                period=config.live_data.period, interval=config.live_data.interval
+                period=config.live_data.period,
+                interval=config.live_data.interval,
+                start=args.start,
+                end=args.end,
             ).get_snapshot(args.symbol)
         except RuntimeError as exc:
             print(f"오류: {exc}", file=sys.stderr)
@@ -264,8 +267,14 @@ def _run_backtest(args) -> int:
         config, llm, replay, requested_leverage=args.leverage, requested_tranches=args.tranches
     )
 
+    journal = TradeJournal(config.journal_path)
+
+    def on_tick(index, snapshot, artifacts, equity) -> None:
+        if artifacts.decision.status == "pending_approval":
+            record_execution(artifacts, broker, journal, cycle.reflection_memory)
+
     print(f"백테스트 실행 중: {args.symbol} ({len(full_snapshot.bars)}개 봉, 워밍업 {args.min_lookback}봉)...")
-    result = run_backtest(cycle, replay, broker, args.symbol, breaker)
+    result = run_backtest(cycle, replay, broker, args.symbol, breaker, on_tick=on_tick)
 
     p = result.performance
     print("=" * 60)
@@ -293,12 +302,6 @@ def main(argv: list[str] | None = None) -> int:
 
     signal_cmd = sub.add_parser("signal", help="Run one analysis cycle for a symbol.")
     _add_common_run_args(signal_cmd)
-    signal_cmd.add_argument(
-        "--approve",
-        action="store_true",
-        help="After showing the decision, ask for interactive y/n approval "
-        "before booking it into the local paper broker.",
-    )
 
     watch_cmd = sub.add_parser(
         "watch", help="Continuously run cycles for a symbol (paper trading only)."
@@ -307,14 +310,6 @@ def main(argv: list[str] | None = None) -> int:
     watch_cmd.add_argument("--interval", type=float, default=60.0, help="Seconds between cycles.")
     watch_cmd.add_argument(
         "--max-iterations", type=int, default=None, help="Stop after this many ticks (default: run until Ctrl+C)."
-    )
-    watch_cmd.add_argument(
-        "--auto-approve",
-        action="store_true",
-        help="Book every decision that clears risk checks into the paper broker "
-        "automatically, with no per-tick prompt. Paper broker only, never a "
-        "real order — this flag is the one explicit opt-in for that, made "
-        "once when you start the loop.",
     )
     watch_cmd.add_argument("--dashboard", action="store_true", help="Serve a live local dashboard in your browser.")
     watch_cmd.add_argument("--dashboard-port", type=int, default=8787)
@@ -328,7 +323,19 @@ def main(argv: list[str] | None = None) -> int:
     backtest_cmd.add_argument(
         "--period",
         default="6mo",
-        help="History window when --live is set (yfinance period string, e.g. 1y, 2y). Ignored otherwise.",
+        help="History window when --live is set (yfinance period string, e.g. 1y, 2y). "
+        "Ignored if --start/--end are given, or if --live isn't set.",
+    )
+    backtest_cmd.add_argument(
+        "--start",
+        default=None,
+        help="Reproduce a specific historical window: start date (e.g. 2025-01-01). "
+        "Requires --live; overrides --period when set.",
+    )
+    backtest_cmd.add_argument(
+        "--end",
+        default=None,
+        help="End date for --start (e.g. 2025-02-28). Requires --live.",
     )
     backtest_cmd.add_argument(
         "--min-lookback",

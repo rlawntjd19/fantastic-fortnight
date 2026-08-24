@@ -17,17 +17,9 @@ def _setup(leverage=1.0):
     return cycle, broker, breaker
 
 
-def test_run_tick_without_auto_approve_never_books():
+def test_run_tick_books_immediately_when_pending_approval():
     cycle, broker, breaker = _setup()
-    result = run_tick(cycle, broker, "AAPL", breaker, auto_approve=False)
-    assert result.booked is False
-    if result.artifacts.decision.trade_plan.action.value != "hold":
-        assert broker.positions == {}
-
-
-def test_run_tick_with_auto_approve_books_when_pending_approval():
-    cycle, broker, breaker = _setup()
-    result = run_tick(cycle, broker, "AAPL", breaker, auto_approve=True)
+    result = run_tick(cycle, broker, "AAPL", breaker)
     if result.artifacts.decision.status == "pending_approval":
         assert result.booked is True
     else:
@@ -36,7 +28,7 @@ def test_run_tick_with_auto_approve_books_when_pending_approval():
 
 def test_run_tick_checks_stop_loss_before_new_analysis():
     cycle, broker, breaker = _setup()
-    first = run_tick(cycle, broker, "AAPL", breaker, auto_approve=True)
+    first = run_tick(cycle, broker, "AAPL", breaker)
     if first.artifacts.decision.trade_plan.action.value == "hold":
         return  # nothing opened, nothing to stop out — inconclusive for this seed/config
 
@@ -45,12 +37,20 @@ def test_run_tick_checks_stop_loss_before_new_analysis():
     pos = broker.positions["AAPL"]
     pos.stop_loss_price = pos.avg_entry_price * (1.5 if pos.quantity > 0 else 0.5)
 
-    second = run_tick(cycle, broker, "AAPL", breaker, auto_approve=True)
+    second = run_tick(cycle, broker, "AAPL", breaker)
     assert "AAPL" in second.stopped_out
+
+
+def test_run_tick_on_stage_hook_fires():
+    cycle, broker, breaker = _setup()
+    stages: list[str] = []
+    run_tick(cycle, broker, "AAPL", breaker, on_stage=lambda name, payload: stages.append(name))
+    assert "analyst_report" in stages
+    assert "risk_verdict" in stages
 
 
 def test_run_loop_respects_max_iterations():
     cycle, broker, breaker = _setup()
     ticks = []
-    run_loop(cycle, broker, "AAPL", breaker, True, interval_seconds=0, max_iterations=3, on_tick=lambda i, r: ticks.append(i))
+    run_loop(cycle, broker, "AAPL", breaker, interval_seconds=0, max_iterations=3, on_tick=lambda i, r: ticks.append(i))
     assert ticks == [0, 1, 2]

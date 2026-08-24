@@ -1,18 +1,21 @@
 """In-memory paper broker. No real orders are ever sent anywhere.
 
-Every mutation (`execute`) requires an explicit `human_approved=True` flag
-from the caller — the CLI is the only place that flag is ever set, and
-only after a person confirms the decision printed to the terminal.
+`execute` books any decision that cleared risk controls immediately —
+there is no per-decision human-approval gate. This is a deliberate,
+explicit choice for this project's *current* scope: nothing in this
+codebase connects to a real brokerage or exchange, so autonomous
+execution here only ever mutates this in-memory ledger.
+
+That reasoning does NOT generalize. If real brokerage/exchange execution
+is ever wired in on top of this, that integration must implement its
+own explicit human-approval step independently — this class's
+auto-execution behavior must not be assumed to carry over to it.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
 from trading_agent.agents.schemas import Action, FinalDecision
-
-
-class HumanApprovalRequiredError(RuntimeError):
-    pass
 
 
 @dataclass
@@ -41,9 +44,9 @@ class PaperBroker:
         )
         return self.cash_equity + unrealized
 
-    def execute(self, decision: FinalDecision, human_approved: bool) -> None:
-        """Books a decision, netting into any existing position for the
-        symbol rather than replacing it.
+    def execute(self, decision: FinalDecision) -> None:
+        """Books a decision immediately, netting into any existing position
+        for the symbol rather than replacing it.
 
         A repeated BUY on top of an open long is folded in as a
         weighted-average entry price, not reset to the new tick's price —
@@ -56,11 +59,6 @@ class PaperBroker:
         only opens a position on the other side if it was larger than what
         was needed to flatten the original one.
         """
-        if not human_approved:
-            raise HumanApprovalRequiredError(
-                "PaperBroker.execute requires human_approved=True; no order is "
-                "ever booked automatically."
-            )
         if not decision.risk_verdict.approved or decision.status != "pending_approval":
             raise ValueError("Cannot execute a decision that was blocked by risk controls.")
 

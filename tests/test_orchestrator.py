@@ -19,15 +19,16 @@ def _run(leverage=20.0, tranches=5, config=None):
 
 def test_cycle_runs_fully_offline_and_produces_a_decision():
     artifacts = _run()
-    # technical, fundamental, sentiment, forecast (heuristic fallback by default)
-    assert len(artifacts.analyst_reports) == 4
+    # technical, fundamental, sentiment, macro, forecast (heuristic fallback by default)
+    assert len(artifacts.analyst_reports) == 5
     assert {r.agent_name for r in artifacts.analyst_reports} == {
         "technical_analyst",
         "fundamental_analyst",
         "sentiment_analyst",
+        "macro_analyst",
         "forecast_analyst",
     }
-    assert artifacts.decision.requires_human_approval is True
+    assert artifacts.decision.status in ("pending_approval", "blocked")
 
 
 def test_forecast_analyst_uses_heuristic_fallback_when_kronos_disabled():
@@ -58,6 +59,40 @@ def test_decision_status_is_pending_approval_when_within_limits():
     artifacts = _run(leverage=1.0, tranches=1, config=cfg)
     if artifacts.decision.trade_plan.action.value != "hold":
         assert artifacts.decision.status == "pending_approval"
+
+
+def test_on_stage_hook_fires_for_every_stage_without_changing_the_result():
+    cfg = DEFAULT_CONFIG
+    stages: list[str] = []
+
+    # Two independent feeds seeded identically, each queried exactly once,
+    # so both calls see the same first-call data (SimulatedFeed advances a
+    # symbol's series on repeated calls to the *same* instance — see
+    # test_simulated_feed.py — so reusing one instance/feed for both calls
+    # would legitimately produce different prices and isn't what this test
+    # is checking).
+    with_hook = TradingCycle(cfg, DummyLLMClient(), SimulatedFeed(seed=1), requested_leverage=1.0).run_cycle(
+        "TEST_SYMBOL", account_equity=cfg.starting_paper_equity, on_stage=lambda name, payload: stages.append(name)
+    )
+    without_hook = TradingCycle(cfg, DummyLLMClient(), SimulatedFeed(seed=1), requested_leverage=1.0).run_cycle(
+        "TEST_SYMBOL", account_equity=cfg.starting_paper_equity
+    )
+
+    assert stages == [
+        "analyst_report",
+        "analyst_report",
+        "analyst_report",
+        "analyst_report",
+        "analyst_report",
+        "research_debate",
+        "trade_plan_drafted",
+        "risk_debate_aggressive",
+        "risk_debate_conservative",
+        "risk_debate_moderator",
+        "risk_verdict",
+    ]
+    assert with_hook.decision.trade_plan.entry_price == without_hook.decision.trade_plan.entry_price
+    assert with_hook.decision.status == without_hook.decision.status
 
 
 def test_fetch_snapshot_and_run_cycle_with_snapshot_match_run_cycle():

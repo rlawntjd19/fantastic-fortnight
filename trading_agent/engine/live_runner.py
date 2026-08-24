@@ -5,17 +5,13 @@ and this project explicitly refuses to (see `agents/risk.py`'s framing
 and the guardrails discussion in README.md). What it does provide: a
 fixed multi-agent decision process (see `engine/orchestrator.py`) run
 repeatedly, marking positions to market and checking stop-losses each
-tick, with results only ever booked into the local `PaperBroker` — never
-a real order.
+tick, with results booked into the local `PaperBroker` — never a real
+order, since no real brokerage/exchange connection exists in this
+codebase (see `engine/paper_broker.py`).
 
-`auto_approve` is the one deliberate relaxation of "a human approves
-every booking": passing it is a one-time, explicit opt-in (typed once,
-at the start of a `watch` session) to auto-book every decision that
-clears risk checks for the rest of that session, instead of prompting
-per tick. Nothing changes about `PaperBroker.execute` itself — it still
-raises without `human_approved=True`; this module is just the one caller
-allowed to pass that flag on a loop's behalf, because the human already
-decided by passing the flag.
+Every decision that clears risk controls is booked automatically, every
+tick, with no per-tick prompt — this loop's whole point is to run
+unattended.
 """
 from __future__ import annotations
 
@@ -41,7 +37,7 @@ def run_tick(
     broker: PaperBroker,
     symbol: str,
     breaker: DailyCircuitBreaker | None,
-    auto_approve: bool,
+    on_stage: Callable[[str, dict], None] | None = None,
 ) -> TickResult:
     snapshot = cycle.fetch_snapshot(symbol)
     stopped_out = broker.check_stop_losses({symbol: snapshot.last_price})
@@ -49,12 +45,13 @@ def run_tick(
         broker.apply_trailing_stops({symbol: snapshot.last_price}, cycle.config.risk.trailing_stop_pct)
 
     equity = broker.equity({symbol: snapshot.last_price})
-    artifacts = cycle.run_cycle_with_snapshot(snapshot, account_equity=equity, circuit_breaker=breaker)
+    artifacts = cycle.run_cycle_with_snapshot(
+        snapshot, account_equity=equity, circuit_breaker=breaker, on_stage=on_stage
+    )
 
-    booked = False
-    if auto_approve and artifacts.decision.status == "pending_approval":
-        broker.execute(artifacts.decision, human_approved=True)
-        booked = True
+    booked = artifacts.decision.status == "pending_approval"
+    if booked:
+        broker.execute(artifacts.decision)
 
     return TickResult(
         artifacts=artifacts,
@@ -69,7 +66,6 @@ def run_loop(
     broker: PaperBroker,
     symbol: str,
     breaker: DailyCircuitBreaker | None,
-    auto_approve: bool,
     interval_seconds: float,
     max_iterations: int | None,
     on_tick: Callable[[int, TickResult], None],
@@ -79,7 +75,7 @@ def run_loop(
     swallowing it, so the caller can print a final summary and exit cleanly."""
     i = 0
     while max_iterations is None or i < max_iterations:
-        result = run_tick(cycle, broker, symbol, breaker, auto_approve)
+        result = run_tick(cycle, broker, symbol, breaker)
         on_tick(i, result)
         i += 1
         if max_iterations is None or i < max_iterations:
