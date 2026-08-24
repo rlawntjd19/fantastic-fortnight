@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>날씨알리미</title>
+<meta name="description" content="한국 날씨 종합 정보와 기상특보 알림 앱" />
+
+<!-- iOS PWA / Add to Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="날씨알리미" />
+<meta name="theme-color" content="#0b1220" />
+<link rel="apple-touch-icon" href="/icons/icon-180.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" href="/icons/icon-192.png" />
+
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar safe-top">
+    <button id="locationBtn" class="location-btn" aria-label="지역 선택">
+      <span id="locationName">서울</span>
+      <span class="chev">▾</span>
+    </button>
+    <button id="refreshBtn" class="icon-btn" aria-label="새로고침">⟳</button>
+  </header>
+
+  <main id="homeView" class="view">
+    <div id="alertBanner" class="alert-banner hidden"></div>
+
+    <section class="current-card">
+      <div class="current-top">
+        <div class="current-icon" id="currentIcon">☀️</div>
+        <div class="current-temp" id="currentTemp">--°</div>
+      </div>
+      <div class="current-sky" id="currentSky">불러오는 중…</div>
+      <div class="current-feels" id="currentFeels"></div>
+      <div class="current-updated" id="currentUpdated"></div>
+    </section>
+
+    <section class="stat-grid">
+      <div class="stat-tile">
+        <div class="stat-label">체감온도</div>
+        <div class="stat-value" id="statFeels">--</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">습도</div>
+        <div class="stat-value" id="statHumidity">--</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">바람</div>
+        <div class="stat-value" id="statWind">--</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">강수확률</div>
+        <div class="stat-value" id="statPrecip">--</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">미세먼지</div>
+        <div class="stat-value" id="statPm10">--</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">초미세먼지</div>
+        <div class="stat-value" id="statPm25">--</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">시간별 예보</h2>
+      <div id="hourlyStrip" class="hourly-strip"></div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">주간 예보</h2>
+      <div id="dailyList" class="daily-list"></div>
+    </section>
+
+    <div class="provider-badge" id="providerBadge"></div>
+  </main>
+
+  <main id="locationsView" class="view hidden">
+    <div class="search-wrap">
+      <input id="searchInput" class="search-input" type="search" placeholder="도시 검색 (예: 부산)" autocomplete="off" />
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">즐겨찾기</h2>
+      <div id="favoritesList" class="location-list"></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">전체 지역</h2>
+      <div id="allLocationsList" class="location-list"></div>
+    </div>
+  </main>
+
+  <main id="settingsView" class="view hidden">
+    <div class="panel">
+      <h2 class="panel-title">기상특보 알림</h2>
+      <p class="hint">기상특보가 발효되면 이 앱을 열어 두는 동안 주기적으로 확인해 알려드립니다.
+      iOS는 Safari에서 &ldquo;홈 화면에 추가&rdquo; 로 설치한 앱만 알림 권한을 허용합니다.</p>
+      <button id="notifyBtn" class="btn">알림 권한 요청</button>
+      <div id="notifyStatus" class="hint"></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">데이터 제공처</h2>
+      <div id="providerInfo" class="hint"></div>
+      <p class="hint">AccuWeather 또는 기상청 API 키는 서버의 <code>.env</code> 파일에 설정합니다
+      (프론트엔드에는 키가 저장되지 않습니다). 자세한 방법은 README를 참고하세요.</p>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">홈 화면에 추가하기 (iPhone)</h2>
+      <ol class="steps">
+        <li>Safari로 이 페이지를 엽니다</li>
+        <li>하단 공유 버튼 <span class="sym">⬆️</span> 를 탭합니다</li>
+        <li>&ldquo;홈 화면에 추가&rdquo;를 선택합니다</li>
+        <li>홈 화면 아이콘으로 앱처럼 실행됩니다</li>
+      </ol>
+    </div>
+  </main>
+
+  <nav class="tabbar safe-bottom">
+    <button class="tab active" data-view="homeView">
+      <span class="tab-icon">🏠</span><span>홈</span>
+    </button>
+    <button class="tab" data-view="locationsView">
+      <span class="tab-icon">📍</span><span>지역</span>
+    </button>
+    <button class="tab" data-view="settingsView">
+      <span class="tab-icon">⚙️</span><span>설정</span>
+    </button>
+  </nav>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
