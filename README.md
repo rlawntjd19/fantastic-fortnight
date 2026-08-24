@@ -8,6 +8,9 @@ order, holds brokerage credentials, or auto-executes anything.
 > pipeline produces requires a human to explicitly approve it before it's
 > even booked into the local paper-trading ledger.
 
+New here? [USAGE.md](USAGE.md) is a step-by-step walkthrough (Korean) for
+running this for the first time. This README covers the design instead.
+
 ## Why this shape
 
 This design is a response to a common but risky pattern: a single LLM
