@@ -31,6 +31,8 @@ from trading_agent.engine.orchestrator import TradingCycle
 from trading_agent.engine.paper_broker import PaperBroker
 from trading_agent.engine.risk_controls import DailyCircuitBreaker
 from trading_agent.llm.client import build_llm_client
+from trading_agent.portfolio.pipeline import run_portfolio_research
+from trading_agent.portfolio.report import render_markdown_report
 
 
 def _build_config(args):
@@ -296,6 +298,58 @@ def _run_backtest(args) -> int:
     return 0
 
 
+def _run_portfolio(args) -> int:
+    import datetime
+
+    config = DEFAULT_CONFIG
+    if args.kronos:
+        config = dataclasses.replace(config, kronos=dataclasses.replace(config.kronos, enabled=True))
+    llm = build_llm_client(config)
+
+    if args.live:
+        from trading_agent.data.yfinance_provider import YFinanceFeed
+
+        provider = YFinanceFeed(period=args.period, interval="1d")
+        data_source = "live"
+    else:
+        # More history than the single-symbol commands' default (120 bars):
+        # mean-variance optimization and the trailing backtest both want a
+        # full-year-ish window, not just enough for a warm-up indicator.
+        provider = SimulatedFeed(n_bars=max(260, args.min_lookback))
+        data_source = "simulated"
+
+    try:
+        report = run_portfolio_research(
+            config,
+            llm,
+            provider,
+            budget=args.budget,
+            min_stocks=args.min_stocks,
+            max_stocks=args.max_stocks,
+            risk_free_rate=args.risk_free_rate,
+            market_risk_premium=args.market_risk_premium,
+            weight_cap=args.weight_cap,
+            min_weight=args.min_weight,
+            optimizer_steps=args.optimizer_steps,
+            forward_paths=args.forward_paths,
+            as_of=datetime.date.today().isoformat(),
+            data_source=data_source,
+        )
+    except RuntimeError as exc:
+        print(f"오류: {exc}", file=sys.stderr)
+        return 1
+
+    memo = render_markdown_report(report)
+    if args.out:
+        with open(args.out, "w", encoding="utf-8") as fh:
+            fh.write(memo)
+        print(f"Wrote {args.out}")
+        print(f"Selected: {', '.join(c.symbol for c in report.selected)}")
+    else:
+        print(memo)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="trading_agent")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -344,6 +398,31 @@ def main(argv: list[str] | None = None) -> int:
         help="Bars of warm-up history before the first decision (needs enough for e.g. SMA30/RSI14).",
     )
 
+    portfolio_cmd = sub.add_parser(
+        "portfolio",
+        help="Run the multi-agent research workflow to build a 2-5 stock, long-only "
+        "US-equity portfolio from a fixed cash budget, with MPT-based sizing, a "
+        "trailing backtest, and a 3-month forward Monte Carlo projection.",
+    )
+    portfolio_cmd.add_argument("--budget", type=float, default=25_000.0, help="Total cash to allocate.")
+    portfolio_cmd.add_argument("--min-stocks", type=int, default=2)
+    portfolio_cmd.add_argument("--max-stocks", type=int, default=5)
+    portfolio_cmd.add_argument("--risk-free-rate", type=float, default=0.045, help="Annual, e.g. 0.045 = 4.5%.")
+    portfolio_cmd.add_argument("--market-risk-premium", type=float, default=0.05, help="Annual equity risk premium.")
+    portfolio_cmd.add_argument("--weight-cap", type=float, default=0.60, help="Max weight for any single name.")
+    portfolio_cmd.add_argument("--min-weight", type=float, default=0.05, help="Min weight for each selected name.")
+    portfolio_cmd.add_argument("--optimizer-steps", type=int, default=25, help="Weight-grid resolution (1/steps).")
+    portfolio_cmd.add_argument("--forward-paths", type=int, default=2000, help="Monte Carlo path count.")
+    portfolio_cmd.add_argument("--min-lookback", type=int, default=260, help="Offline-mode history length (bars).")
+    portfolio_cmd.add_argument(
+        "--live",
+        action="store_true",
+        help="Use real market data (Yahoo Finance via yfinance) instead of the simulated feed.",
+    )
+    portfolio_cmd.add_argument("--period", default="1y", help="History window when --live is set.")
+    portfolio_cmd.add_argument("--kronos", action="store_true", help="Use the Kronos forecaster if available.")
+    portfolio_cmd.add_argument("--out", default=None, help="Write the full Markdown memo to this path instead of stdout.")
+
     args = parser.parse_args(argv)
 
     if args.command == "signal":
@@ -352,6 +431,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_watch(args)
     if args.command == "backtest":
         return _run_backtest(args)
+    if args.command == "portfolio":
+        return _run_portfolio(args)
 
     return 1
 

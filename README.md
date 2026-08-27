@@ -251,6 +251,100 @@ weighted-average entry price, opposite-direction fills close/reduce the
 position and realize PnL first, and only flip to the other side if the
 order was larger than what was needed to flatten it.
 
+## Portfolio construction (2-5 stock, $25k long-only allocator)
+
+Everything above analyzes and paper-trades **one symbol at a time**.
+`python -m trading_agent.cli portfolio` is a separate workflow
+(`trading_agent/portfolio/`) that fans the same analyst pool out across a
+14-name universe (large-cap US stocks plus a handful of broad/sector
+ETFs — no mutual funds, no derivatives — see `portfolio/universe.py`) to
+build one long-only, multi-name portfolio from a cash budget:
+
+```
+Universe (stocks + ETFs, 8+ sectors)
+   |
+   v
+Screening Desk: Technical / Fundamental / Sentiment / Macro / Forecast     (screening.py,
+                analysts -> bull/bear debate -> composite score            reusing agents/analysts.py)
+   v
+Portfolio Manager: iterative, sector-diversified selection (2-5 names)     (selection.py)
+   v
+Quant Desk: CAPM expected returns + historical covariance                 (optimizer.py)
+            -> long-only max-Sharpe grid search
+   v
+Trading Desk: whole-share allocation of the cash budget                   (allocation.py)
+   v
+Risk Desk: trailing-history backtest + 3-month-ahead Monte Carlo          (backtest.py,
+           projection                                              forward_simulation.py)
+```
+
+```bash
+python -m trading_agent.cli portfolio --budget 25000 --out portfolio_memo.md
+python -m trading_agent.cli portfolio --live --period 1y   # real Yahoo Finance data
+```
+
+Design choices worth calling out:
+
+* **Selection is an explicit, logged iteration, not one opaque cutoff.**
+  `selection.select_portfolio` tries a strict round first (at most one
+  pick per sector, real conviction required), and only relaxes the
+  sector cap or the score threshold — one knob at a time — if that round
+  can't fill the minimum stock count. Every round's reasoning is kept as
+  a `SelectionRound` and shown in the memo's "Selection trace" section,
+  so *why* these names and not others is inspectable, not just the
+  answer. If every round still comes up short, a clearly-flagged fallback
+  takes the least-bad names rather than silently returning nothing.
+* **Expected return comes from CAPM, not the historical sample mean.**
+  Historical mean daily return is a notoriously noisy estimator of
+  *future* expected return (a handful of unusual days swings it a lot) —
+  a standard critique of naive Markowitz optimization. Historical
+  covariance, by contrast, is empirically far more stable. So
+  `optimizer.py` uses `risk_free_rate + beta * market_risk_premium`
+  (CAPM) for expected return and the realized historical covariance
+  matrix for risk — the same "replace the noisy return input with a
+  model-implied prior, keep the empirical risk model" spirit as
+  Black-Litterman, without needing a full Black-Litterman implementation.
+* **Long-only max-Sharpe via exact grid search, not a solver dependency.**
+  With only 2-5 assets, an exhaustive search over the weight simplex at a
+  fixed step size is exact (not an approximation of a continuous
+  optimizer) and needs no `scipy`, matching the project's existing
+  zero-dependency style (`data/indicators.py`). A `weight_cap` bounds any
+  single name's concentration; a `min_weight` floor is the mirror-image
+  guardrail — plain mean-variance optimization is notorious for
+  all-or-nothing corner solutions when candidates have similar estimated
+  returns, and a floor keeps the Portfolio Manager's already-screened
+  picks from being zeroed out by noise in the return estimate.
+* **Two separate, clearly-labeled backward/forward numbers.** The
+  historical backtest (`backtest.py`) replays the trailing window under
+  the fixed optimized weights with a periodic rebalance — it can only
+  ever describe what already happened. The 3-month projection
+  (`forward_simulation.py`) is a genuinely forward-looking Monte Carlo
+  simulation: thousands of correlated price paths (via a Cholesky
+  factorization of the historical covariance matrix) drawn forward from
+  today, reported as a return distribution (expected/median, a 5th-95th
+  percentile band, probability of a positive return) rather than one
+  falsely precise point forecast.
+* **Treynor's a known blind spot under CAPM, and the memo says so.** A
+  CAPM-priced portfolio's expected Treynor ratio `(E[r]-rf)/beta`
+  algebraically collapses to the market risk premium for *any* beta —
+  it can't discriminate between CAPM-consistent portfolios by
+  construction. That's why Sharpe (which reflects total risk, i.e.
+  diversification, not just systematic risk) drives the optimizer; the
+  *realized* Treynor ratio from the historical backtest is the
+  informative Treynor number this workflow reports.
+* **Same fully-offline default as everything else.** Without `--live`,
+  `SimulatedFeed` (with a longer, ~1-year window than the single-symbol
+  commands' default) stands in for real prices/fundamentals — useful for
+  exercising the whole pipeline with zero network/API dependencies, but
+  the resulting picks are a demo of the *mechanism*, not a real
+  recommendation; the rendered memo says so explicitly in its own
+  caveats section. `tests/test_portfolio_*.py` cover every stage
+  offline and deterministically.
+
+**Research/education tool. Not investment advice.** No system here can
+guarantee profit; see the memo's own "Caveats" section for what this
+number, specifically, cannot promise.
+
 ## Macro & deeper fundamentals
 
 `FundamentalAnalyst` (`agents/analysts.py`) reads far more than P/E and
