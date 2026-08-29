@@ -1,8 +1,13 @@
 """Screening desk: runs the existing analyst pool (Technical/Fundamental/
-Sentiment/Macro/Forecast) plus the bull/bear research debate against every
-symbol in the universe, exactly the way `engine/orchestrator.TradingCycle`
-does for a single symbol — this just fans that same, already-tested
-analyst stage out across many symbols instead of one.
+Sentiment/Macro/Forecast), three investor-persona analysts, and the
+bull/bear research debate against every symbol in the universe. The core
+five mirror `engine/orchestrator.TradingCycle`'s single-symbol pipeline —
+this just fans that same, already-tested analyst stage out across many
+symbols instead of one. The personas (`agents/persona_analysts.py`) are
+new here: named investor philosophies (value/growth/contrarian) whose
+*scoring rule* differs, not just their narration, so they can genuinely
+disagree with the core analysts and with each other — see that module's
+docstring for why the LLM still never sets their numbers either.
 
 The LLM never sets these numbers either: `composite_score` is the same
 signal/confidence-weighted vote `agents.researchers.ResearchManager`
@@ -18,6 +23,11 @@ from trading_agent.agents.analysts import (
     MacroAnalyst,
     SentimentAnalyst,
     TechnicalAnalyst,
+)
+from trading_agent.agents.persona_analysts import (
+    ContrarianInvestorAnalyst,
+    GrowthInvestorAnalyst,
+    ValueInvestorAnalyst,
 )
 from trading_agent.agents.researchers import ResearchManager
 from trading_agent.agents.schemas import AnalystReport, Signal
@@ -57,20 +67,35 @@ class ScreeningDesk:
         forecaster: PriceForecaster | None = None,
     ) -> None:
         self._data_provider = data_provider
+        macro_provider = macro_provider or build_macro_provider(config)
         self._technical = TechnicalAnalyst(llm)
         self._fundamental = FundamentalAnalyst(llm)
         self._sentiment = SentimentAnalyst(llm)
-        self._macro = MacroAnalyst(llm, macro_provider or build_macro_provider(config))
+        self._macro = MacroAnalyst(llm, macro_provider)
         self._forecast = ForecastAnalyst(
             llm, forecaster or build_price_forecaster(config), pred_len=config.kronos.pred_len
         )
+        self._value_investor = ValueInvestorAnalyst(llm)
+        self._growth_investor = GrowthInvestorAnalyst(llm)
+        # Market-wide, so read once up front rather than re-fetched per symbol.
+        vix_level = macro_provider.get_macro_snapshot().vix_level
+        self._contrarian_investor = ContrarianInvestorAnalyst(llm, vix_level=vix_level)
         self._research_manager = ResearchManager(llm)
 
     def screen_one(self, entry: UniverseEntry) -> CandidateScore:
         snapshot = self._data_provider.get_snapshot(entry.symbol)
         reports = [
             analyst.analyze(snapshot)
-            for analyst in (self._technical, self._fundamental, self._sentiment, self._macro, self._forecast)
+            for analyst in (
+                self._technical,
+                self._fundamental,
+                self._sentiment,
+                self._macro,
+                self._forecast,
+                self._value_investor,
+                self._growth_investor,
+                self._contrarian_investor,
+            )
         ]
         debate = self._research_manager.debate(reports)
         return CandidateScore(

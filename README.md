@@ -265,7 +265,8 @@ Universe (stocks + ETFs, 8+ sectors)
    |
    v
 Screening Desk: Technical / Fundamental / Sentiment / Macro / Forecast     (screening.py,
-                analysts -> bull/bear debate -> composite score            reusing agents/analysts.py)
+                analysts + Value/Growth/Contrarian investor personas       reusing agents/analysts.py,
+                -> bull/bear debate -> composite score                     agents/persona_analysts.py)
    v
 Portfolio Manager: iterative, sector-diversified selection (2-5 names)     (selection.py)
    v
@@ -294,6 +295,27 @@ Design choices worth calling out:
   so *why* these names and not others is inspectable, not just the
   answer. If every round still comes up short, a clearly-flagged fallback
   takes the least-bad names rather than silently returning nothing.
+* **Three investor-persona analysts add named, opposing philosophies to
+  the vote** (`agents/persona_analysts.py`): `ValueInvestorAnalyst`
+  (Graham/Buffett-style — cheap, low-leverage, profitable),
+  `GrowthInvestorAnalyst` (Cathie-Wood-style — revenue growth and
+  momentum outweigh valuation), and `ContrarianInvestorAnalyst`
+  (Burry-style — deliberately reads RSI/VIX the *opposite* way
+  `TechnicalAnalyst`/`MacroAnalyst` do, since "be greedy when others are
+  fearful" only means something if it disagrees with the consensus read).
+  Inspired by the named investor-persona agents in open multi-agent
+  trading-agent projects like
+  [virattt/ai-hedge-fund](https://github.com/virattt/ai-hedge-fund) — but
+  each persona's *signal is still a deterministic rule* over the same
+  fundamentals/price data every other analyst reads, with the LLM only
+  narrating in that persona's voice on top. Letting an LLM freely decide
+  "what would Buffett do" and using that as the actual trading signal
+  would reintroduce the untestable, unreproducible, LLM-decides-the-
+  number pattern this whole package's analyst design exists to avoid.
+  Wired into the multi-symbol portfolio screening desk only (not the
+  single-symbol `signal`/`watch`/`backtest` commands' `TradingCycle`) —
+  more research viewpoints feeding a stock-selection vote is the point,
+  not more signals feeding one already-decided leveraged trade plan.
 * **Expected return comes from CAPM, not the historical sample mean.**
   Historical mean daily return is a notoriously noisy estimator of
   *future* expected return (a handful of unusual days swings it a lot) —

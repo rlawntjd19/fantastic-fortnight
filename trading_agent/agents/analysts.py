@@ -50,7 +50,7 @@ class TechnicalAnalyst:
             score += 0.5 if mom > 0 else -0.5
             points.append(f"10-bar momentum {mom * 100:.1f}%")
 
-        signal, confidence = _score_to_signal(score, max_abs_score=2.0)
+        signal, confidence = score_to_signal(score, max_abs_score=2.0)
         summary = self._llm.narrate(
             system="You are a terse technical analyst. One sentence, no advice.",
             user="\n".join(points) or "No indicator data available.",
@@ -136,7 +136,7 @@ class FundamentalAnalyst:
                 f"({recs.get('hold', 0)} hold)"
             )
 
-        signal, confidence = _score_to_signal(score, max_abs_score=self._MAX_ABS_SCORE)
+        signal, confidence = score_to_signal(score, max_abs_score=self._MAX_ABS_SCORE)
         summary = self._llm.narrate(
             system="You are a terse fundamental analyst. One sentence, no advice.",
             user="\n".join(points) or "No fundamental data available.",
@@ -170,7 +170,7 @@ class SentimentAnalyst:
             else:
                 points.append(f"= {headline}")
 
-        signal, confidence = _score_to_signal(score, max_abs_score=max(1.0, len(headlines)))
+        signal, confidence = score_to_signal(score, max_abs_score=max(1.0, len(headlines)))
         summary = self._llm.narrate(
             system="You are a terse news-sentiment analyst. One sentence, no advice.",
             user="\n".join(headlines) or "No headlines available.",
@@ -232,7 +232,7 @@ class MacroAnalyst:
                     f"Dollar index down {macro.dollar_index_change_pct * 100:.1f}%: tailwind for risk assets"
                 )
 
-        signal, confidence = _score_to_signal(score, max_abs_score=self._MAX_ABS_SCORE)
+        signal, confidence = score_to_signal(score, max_abs_score=self._MAX_ABS_SCORE)
         summary = self._llm.narrate(
             system="You are a terse macro strategist. One sentence, no advice.",
             user="\n".join(points) or "No macro data available.",
@@ -259,7 +259,7 @@ class ForecastAnalyst:
     # Below this fraction of the full-confidence move, treat the forecast
     # as noise rather than a directional call (a return-fraction score
     # needs its own threshold — it isn't comparable to the raw point
-    # totals `_score_to_signal`'s fixed 0.25 cutoff was built for).
+    # totals `score_to_signal`'s fixed 0.25 cutoff was built for).
     _NEUTRAL_BAND = 0.20 * _FULL_CONFIDENCE_MOVE
 
     def __init__(self, llm: LLMClient, forecaster: PriceForecaster, pred_len: int = 10) -> None:
@@ -295,7 +295,11 @@ class ForecastAnalyst:
         return AnalystReport(self.name, signal, confidence, summary, points)
 
 
-def _score_to_signal(score: float, max_abs_score: float) -> tuple[Signal, float]:
+def score_to_signal(score: float, max_abs_score: float) -> tuple[Signal, float]:
+    """Shared scoring rule every analyst in this module (and
+    `agents/persona_analysts.py`) turns a raw point score into a
+    signal/confidence pair with — kept public so persona analysts follow
+    the exact same fixed cutoff, not a redefined one."""
     confidence = min(1.0, abs(score) / max_abs_score) if max_abs_score else 0.0
     if score > 0.25:
         return Signal.BULLISH, confidence
