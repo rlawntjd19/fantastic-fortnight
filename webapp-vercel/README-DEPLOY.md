@@ -34,23 +34,28 @@ used it to actually call the two endpoints this app's core data path depends on:
   whether the log panel's `candidateSource` reads `screener` or `fallback_seed` — the
   latter means the crumb flow isn't working in your deployment and is worth
   investigating (rate limiting, IP-based blocking, or Yahoo having changed the flow).
-- **Current Vercel Cron limits for your plan are still unverified.** Both the sandbox
-  above and this session attempted to reach vercel.com's docs and were blocked by
-  network policy both times. `vercel.json` requests hourly (`0 * * * *`) — as of some
-  point, Vercel's Hobby (free) plan has capped Cron Jobs to at most once/day, which
-  would silently make this run far less often than configured; Pro plans have allowed
-  finer granularity. Confirm your plan's actual current limit in the Vercel dashboard
-  at deploy time rather than trusting this note. If your plan can't do hourly, the
-  "page open" polling path below still works regardless of cron tier.
+- **Vercel Cron on the Hobby plan is confirmed capped to once/day** — a real deploy
+  attempt hit exactly this: Vercel rejected the original hourly schedule
+  (`0 * * * *`) outright with "Hobby accounts are limited to daily cron jobs."
+  `vercel.json` now requests `5 21 * * *` (21:05 UTC, ~5 minutes after the US
+  market close) once daily instead — deliberately timed so the one guaranteed
+  cron tick reflects that day's actual closing prices, not a stale intraday
+  snapshot. `/api/cron` (`app/api/cron/route.ts`) has no hourly-specific logic;
+  it just runs one tick whenever called, so this was a config-only fix, not a
+  code change. If you're on Pro and want finer granularity back, edit the
+  schedule in `vercel.json` directly — anything Vercel's cron syntax accepts
+  will work.
 
 ## Two ways the loop advances
 
-1. **Vercel Cron** (`vercel.json` → `/api/cron`, hourly by default) — runs even if
-   nobody has the page open. Protected by `CRON_SECRET` so only Vercel can trigger it.
+1. **Vercel Cron** (`vercel.json` → `/api/cron`, once daily by default — Hobby's
+   ceiling, see "Known limitations" below) — runs even if nobody has the page open.
+   Protected by `CRON_SECRET` so only Vercel can trigger it.
 2. **The page itself** — polls `/api/state` every 20s while open, and has a "지금 한
-   틱 실행" button that calls `/api/tick` directly. This works regardless of your
-   cron plan/quota, at the cost of needing someone to have the tab open (or to click
-   the button) between cron runs.
+   틱 실행" button that calls `/api/tick` directly. On Hobby, **this is actually the
+   primary way the loop advances more than once a day** — cron alone only guarantees
+   one tick every 24 hours. Someone needs to have the tab open (or click the button)
+   for anything faster than that.
 
 Both paths call the exact same `runFirmTick()` in `lib/engine.ts` — there's no
 separate "manual mode" with looser rules.
