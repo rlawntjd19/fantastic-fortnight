@@ -43,12 +43,14 @@ def _build_config(args):
         live_data = dataclasses.replace(config.live_data, enabled=True)
         if getattr(args, "period", None):
             live_data = dataclasses.replace(live_data, period=args.period)
+        if getattr(args, "data_provider", None):
+            live_data = dataclasses.replace(live_data, provider=args.data_provider)
         config = dataclasses.replace(config, live_data=live_data)
     return config
 
 
 def _add_common_run_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("symbol", help="For --live, a real Yahoo Finance ticker (e.g. 000660.KS, AAPL).")
+    parser.add_argument("symbol", help="For --live, a real ticker (e.g. 000660.KS, AAPL).")
     parser.add_argument("--leverage", type=float, default=1.0)
     parser.add_argument("--tranches", type=int, default=2)
     parser.add_argument(
@@ -61,10 +63,18 @@ def _add_common_run_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--live",
         action="store_true",
-        help="Use real market data (Yahoo Finance via yfinance) instead of the "
-        "simulated feed. Requires `pip install -r requirements-live.txt`. "
-        "Unlike --kronos, a failed fetch (bad ticker, no network) is a hard "
-        "error here, never a silent fallback to fake data.",
+        help="Use real market data instead of the simulated feed (backend picked by "
+        "--data-provider). Requires `pip install -r requirements-live.txt` for the "
+        "yfinance backend. A failed fetch (bad ticker, no network) is a hard error "
+        "here, never a silent fallback to fake data.",
+    )
+    parser.add_argument(
+        "--data-provider",
+        choices=["yfinance", "alphavantage"],
+        default="yfinance",
+        help="Live data backend for --live. 'yfinance' (default, Yahoo Finance) or "
+        "'alphavantage' (needs ALPHAVANTAGE_API_KEY; useful when yfinance's TLS "
+        "fingerprinting doesn't survive a network's TLS-intercepting proxy).",
     )
 
 
@@ -236,15 +246,37 @@ def _run_backtest(args) -> int:
     llm = build_llm_client(config)
 
     if args.live:
-        from trading_agent.data.yfinance_provider import YFinanceFeed
-
         try:
-            full_snapshot = YFinanceFeed(
-                period=config.live_data.period,
-                interval=config.live_data.interval,
-                start=args.start,
-                end=args.end,
-            ).get_snapshot(args.symbol)
+            if config.live_data.provider == "alphavantage":
+                from trading_agent.data.alphavantage_provider import AlphaVantageFeed
+
+                av = config.alphavantage
+                full_snapshot = AlphaVantageFeed(
+                    api_key=av.api_key,
+                    requests_per_minute=av.requests_per_minute,
+                    include_fundamentals=av.include_fundamentals,
+                    include_news=av.include_news,
+                    include_realtime_quote=av.include_realtime_quote,
+                ).get_snapshot(args.symbol)
+                if args.start or args.end:
+                    # Alpha Vantage has no start/end window param — filter the
+                    # already-fetched full history client-side instead.
+                    import datetime as _dt
+
+                    lo = _dt.datetime.strptime(args.start, "%Y-%m-%d").timestamp() if args.start else float("-inf")
+                    hi = _dt.datetime.strptime(args.end, "%Y-%m-%d").timestamp() if args.end else float("inf")
+                    full_snapshot = dataclasses.replace(
+                        full_snapshot, bars=[b for b in full_snapshot.bars if lo <= b.timestamp <= hi]
+                    )
+            else:
+                from trading_agent.data.yfinance_provider import YFinanceFeed
+
+                full_snapshot = YFinanceFeed(
+                    period=config.live_data.period,
+                    interval=config.live_data.interval,
+                    start=args.start,
+                    end=args.end,
+                ).get_snapshot(args.symbol)
         except RuntimeError as exc:
             print(f"오류: {exc}", file=sys.stderr)
             return 1
@@ -304,12 +336,18 @@ def _run_portfolio(args) -> int:
     config = DEFAULT_CONFIG
     if args.kronos:
         config = dataclasses.replace(config, kronos=dataclasses.replace(config.kronos, enabled=True))
-    llm = build_llm_client(config)
 
     if args.live:
-        from trading_agent.data.yfinance_provider import YFinanceFeed
-
-        provider = YFinanceFeed(period=args.period, interval="1d")
+        # Also flips config.live_data.enabled on, which build_macro_provider()
+        # (called inside run_portfolio_research) reads too — without this,
+        # --live only made the price feed real and macro stayed static.
+        config = dataclasses.replace(
+            config,
+            live_data=dataclasses.replace(
+                config.live_data, enabled=True, provider=args.data_provider, period=args.period
+            ),
+        )
+        provider = build_market_data_provider(config)
         data_source = "live"
     else:
         # More history than the single-symbol commands' default (120 bars):
@@ -317,6 +355,8 @@ def _run_portfolio(args) -> int:
         # full-year-ish window, not just enough for a warm-up indicator.
         provider = SimulatedFeed(n_bars=max(260, args.min_lookback))
         data_source = "simulated"
+
+    llm = build_llm_client(config)
 
     try:
         report = run_portfolio_research(
@@ -407,7 +447,7 @@ def main(argv: list[str] | None = None) -> int:
     portfolio_cmd.add_argument("--budget", type=float, default=25_000.0, help="Total cash to allocate.")
     portfolio_cmd.add_argument("--min-stocks", type=int, default=2)
     portfolio_cmd.add_argument("--max-stocks", type=int, default=5)
-    portfolio_cmd.add_argument("--risk-free-rate", type=float, default=0.045, help="Annual, e.g. 0.045 = 4.5%.")
+    portfolio_cmd.add_argument("--risk-free-rate", type=float, default=0.045, help="Annual, e.g. 0.045 = 4.5%%.")
     portfolio_cmd.add_argument("--market-risk-premium", type=float, default=0.05, help="Annual equity risk premium.")
     portfolio_cmd.add_argument("--weight-cap", type=float, default=0.60, help="Max weight for any single name.")
     portfolio_cmd.add_argument("--min-weight", type=float, default=0.05, help="Min weight for each selected name.")
@@ -417,9 +457,24 @@ def main(argv: list[str] | None = None) -> int:
     portfolio_cmd.add_argument(
         "--live",
         action="store_true",
-        help="Use real market data (Yahoo Finance via yfinance) instead of the simulated feed.",
+        help="Use real market data instead of the simulated feed (backend picked by --data-provider).",
     )
-    portfolio_cmd.add_argument("--period", default="1y", help="History window when --live is set.")
+    portfolio_cmd.add_argument(
+        "--data-provider",
+        choices=["yfinance", "alphavantage"],
+        default="yfinance",
+        help="Live data backend for --live. 'yfinance' (default, Yahoo Finance) or "
+        "'alphavantage' (needs ALPHAVANTAGE_API_KEY; useful when yfinance's TLS "
+        "fingerprinting doesn't survive a network's TLS-intercepting proxy). Alpha "
+        "Vantage's free tier has a tight request quota — expect slow, throttled "
+        "screening across this command's ~19-name universe.",
+    )
+    portfolio_cmd.add_argument(
+        "--period",
+        default="1y",
+        help="History window when --live is set with --data-provider yfinance. Ignored "
+        "for alphavantage, which always fetches full daily history.",
+    )
     portfolio_cmd.add_argument("--kronos", action="store_true", help="Use the Kronos forecaster if available.")
     portfolio_cmd.add_argument("--out", default=None, help="Write the full Markdown memo to this path instead of stdout.")
 

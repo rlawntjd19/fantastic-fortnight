@@ -70,20 +70,53 @@ class KronosConfig:
 
 @dataclass(frozen=True)
 class LiveDataConfig:
-    """Settings for the optional real-market-data feed (Yahoo Finance via `yfinance`).
+    """Settings for the optional real-market-data feed.
 
     Off by default (`SimulatedFeed` is used instead) since it needs a
-    network call and the `yfinance` package. Enable with `--live` on the
-    CLI or `TRADING_AGENT_LIVE_DATA_ENABLED=true`. Unlike the Kronos
-    forecaster, a failed *fetch* (bad ticker, no network) is never
+    network call. Enable with `--live` on the CLI or
+    `TRADING_AGENT_LIVE_DATA_ENABLED=true`. `provider` picks which real
+    data source backs it — `"yfinance"` (default, Yahoo Finance via the
+    `yfinance` package) or `"alphavantage"` (a plain REST API needing an
+    API key, no library-level TLS-fingerprint tricks — see
+    `AlphaVantageConfig` and `data/alphavantage_provider.py`). Unlike the
+    Kronos forecaster, a failed *fetch* (bad ticker, no network) is never
     silently swapped for fake data — that would be actively misleading
     for a finance tool — it's raised as a clear error instead. Only a
-    missing `yfinance` install falls back, the same way Kronos does.
+    missing package/key falls back, the same way Kronos does.
     """
 
     enabled: bool = os.environ.get("TRADING_AGENT_LIVE_DATA_ENABLED", "false").lower() == "true"
+    provider: str = os.environ.get("TRADING_AGENT_LIVE_DATA_PROVIDER", "yfinance")
     period: str = os.environ.get("TRADING_AGENT_LIVE_DATA_PERIOD", "6mo")
     interval: str = os.environ.get("TRADING_AGENT_LIVE_DATA_INTERVAL", "1d")
+
+
+@dataclass(frozen=True)
+class AlphaVantageConfig:
+    """Settings for the optional Alpha Vantage market-data provider — an
+    alternative to `yfinance`/Yahoo Finance for when `yfinance`'s
+    TLS-fingerprint impersonation (via `curl_cffi`) doesn't survive a
+    network's TLS-intercepting proxy, or a licensed/documented API is
+    otherwise preferred. Needs a free (rate-limited) or paid API key from
+    https://www.alphavantage.co/support/#api-key.
+
+    The free tier's request quota is genuinely tight (a handful of
+    requests per minute and a low daily cap, per Alpha Vantage's current
+    terms — check https://www.alphavantage.co/premium/ for the current
+    numbers). `include_fundamentals`/`include_news`/`include_realtime_quote`
+    default on but are meant to be turned off to conserve quota, since a
+    single `get_snapshot()` call can otherwise cost up to 4 requests.
+    """
+
+    api_key: str | None = os.environ.get("ALPHAVANTAGE_API_KEY")
+    requests_per_minute: float = float(os.environ.get("TRADING_AGENT_ALPHAVANTAGE_RPM", "5"))
+    include_fundamentals: bool = (
+        os.environ.get("TRADING_AGENT_ALPHAVANTAGE_FUNDAMENTALS", "true").lower() == "true"
+    )
+    include_news: bool = os.environ.get("TRADING_AGENT_ALPHAVANTAGE_NEWS", "true").lower() == "true"
+    include_realtime_quote: bool = (
+        os.environ.get("TRADING_AGENT_ALPHAVANTAGE_REALTIME_QUOTE", "true").lower() == "true"
+    )
 
 
 @dataclass(frozen=True)
@@ -96,6 +129,7 @@ class Config:
     risk: RiskLimits = field(default_factory=RiskLimits)
     kronos: KronosConfig = field(default_factory=KronosConfig)
     live_data: LiveDataConfig = field(default_factory=LiveDataConfig)
+    alphavantage: AlphaVantageConfig = field(default_factory=AlphaVantageConfig)
     memory_path: str = os.environ.get(
         "TRADING_AGENT_MEMORY_PATH", "trading_agent_memory.json"
     )

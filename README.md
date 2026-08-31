@@ -132,6 +132,49 @@ a real ticker's name would be actively misleading for a finance tool.
 Only a missing `yfinance` install falls back (`data/factory.py`), the
 same pattern as `forecast/factory.py`.
 
+**Alternative backend: Alpha Vantage** — `--data-provider alphavantage`
+swaps `yfinance` for a plain REST call to
+[Alpha Vantage](https://www.alphavantage.co) instead:
+
+```bash
+export ALPHAVANTAGE_API_KEY=...   # free key: alphavantage.co/support/#api-key
+python -m trading_agent.cli signal AAPL --live --data-provider alphavantage
+python -m trading_agent.cli portfolio --live --data-provider alphavantage
+```
+
+Why this exists alongside `yfinance`: `yfinance` gets past Yahoo's bot
+detection with `curl_cffi`'s browser-TLS-fingerprint impersonation — and
+that impersonation doesn't survive every network. Behind a
+TLS-intercepting corporate/sandboxed proxy specifically, `yfinance`'s
+requests can get reset even when the destination itself isn't blocked,
+because the outer TLS handshake the proxy re-terminates is never the
+fingerprint `curl_cffi` tried to send. Alpha Vantage is a plain,
+documented, key-authenticated REST API — no fingerprint tricks, so it
+isn't exposed to that specific failure mode. (`data/alphavantage_provider.py`
+mirrors `yfinance_provider.py`'s exact contract: `TIME_SERIES_DAILY` is
+the primary fetch and is never silently swapped for fake data on
+failure; `GLOBAL_QUOTE`/`OVERVIEW`/`NEWS_SENTIMENT` are secondary and
+degrade to "no data" instead of erroring, the same as every other
+optional fundamentals/news field elsewhere in this project.)
+
+**This is a real trade-off, not a strict upgrade** — Alpha Vantage's
+free tier has a tight request quota (a handful of requests/minute and a
+low daily cap; see [alphavantage.co/premium](https://www.alphavantage.co/premium/)
+for current numbers), and a single `get_snapshot()` call can cost up to
+4 requests. `AlphaVantageConfig`'s `include_fundamentals`/`include_news`/
+`include_realtime_quote` (env vars `TRADING_AGENT_ALPHAVANTAGE_*`, all on
+by default) exist to spend that quota on price data alone when needed.
+Screening the portfolio command's ~19-name universe on a free key will
+be slow (rate-limited to `TRADING_AGENT_ALPHAVANTAGE_RPM`, default 5/min)
+and can exhaust a free daily quota in a single run — this backend is
+realistically for single-symbol `signal`/`watch`/`backtest` use on a
+free key, or the full portfolio screen on a paid plan.
+`AlphaVantageMacroProvider` is also thinner than `YFinanceMacroProvider`:
+Alpha Vantage exposes Treasury yields directly but has no VIX or
+dollar-index equivalent, so those two macro fields are always "no
+signal" under this backend rather than approximated from an unrelated
+proxy.
+
 **Continuous paper trading** — `watch` runs `TradingCycle` on a loop,
 marking positions to market, checking stop-losses, and booking every
 decision that clears risk controls, every tick, with no prompt:
@@ -282,6 +325,7 @@ Risk Desk: trailing-history backtest + 3-month-ahead Monte Carlo          (backt
 ```bash
 python -m trading_agent.cli portfolio --budget 25000 --out portfolio_memo.md
 python -m trading_agent.cli portfolio --live --period 1y   # real Yahoo Finance data
+python -m trading_agent.cli portfolio --live --data-provider alphavantage   # or Alpha Vantage — see "Live data" above
 ```
 
 Design choices worth calling out:
