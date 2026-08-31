@@ -5,6 +5,27 @@ and books paper trades into a local, in-memory ledger. Nothing in this
 repository connects to a real brokerage or exchange — every execution
 here only ever mutates `PaperBroker`'s in-process state.
 
+## Daily equity research committee (2-5 picks, 2-3mo horizon)
+
+**[research_team/README.md](research_team/README.md)** documents the newer
+of the two agent systems in this repo: a daily-run committee
+(`trading_agent/committee/`) of the same analyst agents below, chaired by a
+Portfolio Manager (CIO) agent, that screens a large/mid-cap US stock and
+broad-index-ETF universe and maintains a standing **2-5 name shortlist**
+for a **2-3 month hold**, tracked against SPY toward an explicit
+**beat-the-benchmark-by-5pp** OKR. `.github/workflows/daily_research.yml`
+runs it every weekday and commits the report back to this branch — see
+that README for the chain-of-thought ranking logic, the eligibility
+rubric, and how the OKR scoreboard is tracked day over day.
+
+```bash
+python -m trading_agent.cli daily-picks --live
+```
+
+Everything below this point documents the original single-symbol,
+leveraged paper-trading pipeline (`signal`/`watch`/`backtest`), which the
+committee above is built on top of, not a replacement for.
+
 > Research/education tool. Not investment advice. Autonomous execution
 > here is safe only because there is no real-money connector anywhere in
 > this codebase — see "Why this shape" below for what that does and

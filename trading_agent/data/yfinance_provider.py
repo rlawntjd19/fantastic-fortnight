@@ -36,10 +36,13 @@ _INFO_FIELD_MAP = {
     "debtToEquity": "debt_to_equity",
     "dividendYield": "dividend_yield",
     "marketCap": "market_cap",
+    "totalAssets": "total_assets",  # ETF AUM
     "beta": "beta",
     "trailingEps": "eps_trailing",
     "sector": "sector",
     "industry": "industry",
+    "exchange": "exchange",
+    "quoteType": "quote_type",
 }
 
 
