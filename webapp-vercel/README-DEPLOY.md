@@ -10,25 +10,38 @@ and all four funds still hit the exact same hard-coded risk limits on every sing
 order (3x leverage cap, 10%-of-equity position cap, mandatory stop-loss, daily loss
 circuit breaker). Autonomy was expanded; the safety ceiling was not touched.
 
-## What I could not verify from this build environment
+## What's been verified since, and what's still open
 
-I built and tested this from a sandboxed session whose network policy blocks direct
-outbound access to `finance.yahoo.com` and `vercel.com`. Concretely, that means:
+A later session had (temporary, sandboxed) outbound access to `finance.yahoo.com` and
+used it to actually call the two endpoints this app's core data path depends on:
 
-- **Yahoo Finance calls are untested end-to-end.** The chart/quoteSummary/screener/
-  crumb-cookie logic in `lib/yahoo.ts` is written to the current documented shape of
-  those unofficial endpoints (the same ones the `yfinance` Python package already in
-  this repo talks to), and the pure decision logic (position netting, risk clamping,
-  circuit breaker, strategy weighting) is unit-verified in isolation — but I have not
-  been able to make one real live call to Yahoo from here. **Please do a real tick
-  right after your first deploy** (see step 5) and check the log panel actually shows
-  real tickers with real prices, not just "no error."
-- **Current Vercel Cron limits for your plan are unverified.** I could not reach
-  vercel.com's docs to confirm today's frequency/quota limits for cron jobs on your
-  specific plan tier. `vercel.json` requests hourly (`0 * * * *`); if your plan
-  restricts that, Vercel will tell you at deploy time and you can loosen the schedule.
-  This is a soft dependency, not a hard blocker — see "Two ways the loop advances"
-  below.
+- **`getChart` (prices/OHLCV) and `getNewsHeadlines` (sentiment input) are confirmed
+  working against live Yahoo responses**, parsed shape and all —
+  `chart.result[0].{timestamp, meta.currency, indicators.quote[0].{open,high,low,close,volume}}`
+  and `news[].title` both matched exactly what `lib/yahoo.ts` expects, with real,
+  current prices coming back. `getMacroSnapshot` just composes `getChart` calls, so it
+  inherits this same verification.
+- **`getFundamentals` and `getScreenerUniverse` remain unverified** — both need the
+  crumb/cookie handshake in `getCrumb()`, and that specific flow (simulating a
+  browser's cookie-and-crumb dance to get past Yahoo's auth gate) wasn't something
+  that session's environment permitted testing, for policy reasons unrelated to
+  whether the code itself is correct. This matters less than it sounds: `getFundamentals`
+  already returns `{}` on any failure (every fundamentals field downstream is already
+  optional), and `getCandidateUniverse` (`lib/screening.ts`) already falls back to a
+  20-name static seed list if the screener returns fewer than 5 symbols or throws —
+  so a broken crumb flow degrades the fund's data quality, it doesn't break the loop.
+  **Still do a real tick right after your first deploy** (see step 5) and check
+  whether the log panel's `candidateSource` reads `screener` or `fallback_seed` — the
+  latter means the crumb flow isn't working in your deployment and is worth
+  investigating (rate limiting, IP-based blocking, or Yahoo having changed the flow).
+- **Current Vercel Cron limits for your plan are still unverified.** Both the sandbox
+  above and this session attempted to reach vercel.com's docs and were blocked by
+  network policy both times. `vercel.json` requests hourly (`0 * * * *`) — as of some
+  point, Vercel's Hobby (free) plan has capped Cron Jobs to at most once/day, which
+  would silently make this run far less often than configured; Pro plans have allowed
+  finer granularity. Confirm your plan's actual current limit in the Vercel dashboard
+  at deploy time rather than trusting this note. If your plan can't do hourly, the
+  "page open" polling path below still works regardless of cron tier.
 
 ## Two ways the loop advances
 
