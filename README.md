@@ -411,6 +411,38 @@ Design choices worth calling out:
 guarantee profit; see the memo's own "Caveats" section for what this
 number, specifically, cannot promise.
 
+### Watching the portfolio's value update live
+
+`portfolio` is one-shot: it screens, selects, allocates, and exits. To
+watch that allocation's value tick over time instead, `portfolio-watch`
+runs the exact same one-shot pass once, then re-prices the resulting
+positions on an interval and serves a local dashboard:
+
+```bash
+python -m trading_agent.cli portfolio-watch --dashboard --interval 30
+# → http://127.0.0.1:8788, or add --live [--data-provider alphavantage] for real prices
+```
+
+This is deliberately **read-only** — unlike `watch` (which books trades
+every tick with no prompt, see below), `portfolio-watch` never
+re-screens the universe, never re-optimizes weights, and never places
+an order. It only answers "what is this $25k worth right now": each
+tick re-fetches each held symbol's current price
+(`portfolio/watch.py`'s `PortfolioWatcher`) and recomputes value/PnL
+against the cost basis fixed at selection time, rendered by
+`portfolio/dashboard.py` (same stdlib-only, localhost-bound pattern as
+the single-symbol dashboard below, on port 8788 instead of 8787 so both
+can run side by side).
+
+One deliberate departure from this project's usual "never mask a failed
+fetch" rule: here, one symbol's fetch failing marks *that row* stale
+(held at its last-known price) rather than stopping the whole session,
+because this loop never turns a price into a trade decision — a
+transient blip should degrade one number on a dashboard, not kill an
+hours-long monitoring session. `signal`/`watch`/`backtest`'s live feeds
+still raise hard on a failed fetch, because those failures could
+otherwise feed straight into a booked position.
+
 ## Macro & deeper fundamentals
 
 `FundamentalAnalyst` (`agents/analysts.py`) reads far more than P/E and

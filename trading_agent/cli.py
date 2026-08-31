@@ -31,8 +31,12 @@ from trading_agent.engine.orchestrator import TradingCycle
 from trading_agent.engine.paper_broker import PaperBroker
 from trading_agent.engine.risk_controls import DailyCircuitBreaker
 from trading_agent.llm.client import build_llm_client
+from trading_agent.portfolio.dashboard import PortfolioDashboardState
+from trading_agent.portfolio.dashboard import start_dashboard_server as start_portfolio_dashboard_server
 from trading_agent.portfolio.pipeline import run_portfolio_research
 from trading_agent.portfolio.report import render_markdown_report
+from trading_agent.portfolio.watch import PortfolioWatcher
+from trading_agent.portfolio.watch import run_loop as run_portfolio_watch_loop
 
 
 def _build_config(args):
@@ -76,6 +80,43 @@ def _add_common_run_args(parser: argparse.ArgumentParser) -> None:
         "'alphavantage' (needs ALPHAVANTAGE_API_KEY; useful when yfinance's TLS "
         "fingerprinting doesn't survive a network's TLS-intercepting proxy).",
     )
+
+
+def _add_portfolio_research_args(parser: argparse.ArgumentParser) -> None:
+    """Shared by `portfolio` and `portfolio-watch` — the args that drive the
+    one-shot screen/selection/allocation pass both commands start from."""
+    parser.add_argument("--budget", type=float, default=25_000.0, help="Total cash to allocate.")
+    parser.add_argument("--min-stocks", type=int, default=2)
+    parser.add_argument("--max-stocks", type=int, default=5)
+    parser.add_argument("--risk-free-rate", type=float, default=0.045, help="Annual, e.g. 0.045 = 4.5%%.")
+    parser.add_argument("--market-risk-premium", type=float, default=0.05, help="Annual equity risk premium.")
+    parser.add_argument("--weight-cap", type=float, default=0.60, help="Max weight for any single name.")
+    parser.add_argument("--min-weight", type=float, default=0.05, help="Min weight for each selected name.")
+    parser.add_argument("--optimizer-steps", type=int, default=25, help="Weight-grid resolution (1/steps).")
+    parser.add_argument("--forward-paths", type=int, default=2000, help="Monte Carlo path count.")
+    parser.add_argument("--min-lookback", type=int, default=260, help="Offline-mode history length (bars).")
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Use real market data instead of the simulated feed (backend picked by --data-provider).",
+    )
+    parser.add_argument(
+        "--data-provider",
+        choices=["yfinance", "alphavantage"],
+        default="yfinance",
+        help="Live data backend for --live. 'yfinance' (default, Yahoo Finance) or "
+        "'alphavantage' (needs ALPHAVANTAGE_API_KEY; useful when yfinance's TLS "
+        "fingerprinting doesn't survive a network's TLS-intercepting proxy). Alpha "
+        "Vantage's free tier has a tight request quota — expect slow, throttled "
+        "screening across this command's ~19-name universe.",
+    )
+    parser.add_argument(
+        "--period",
+        default="1y",
+        help="History window when --live is set with --data-provider yfinance. Ignored "
+        "for alphavantage, which always fetches full daily history.",
+    )
+    parser.add_argument("--kronos", action="store_true", help="Use the Kronos forecaster if available.")
 
 
 def _print_decision(artifacts) -> None:
@@ -330,9 +371,10 @@ def _run_backtest(args) -> int:
     return 0
 
 
-def _run_portfolio(args) -> int:
-    import datetime
-
+def _build_portfolio_config_and_provider(args):
+    """Shared by `portfolio` and `portfolio-watch`: builds the Config and
+    the market-data provider used for the one-shot screen/selection/
+    allocation pass both commands start from."""
     config = DEFAULT_CONFIG
     if args.kronos:
         config = dataclasses.replace(config, kronos=dataclasses.replace(config.kronos, enabled=True))
@@ -356,25 +398,39 @@ def _run_portfolio(args) -> int:
         provider = SimulatedFeed(n_bars=max(260, args.min_lookback))
         data_source = "simulated"
 
+    return config, provider, data_source
+
+
+def _run_portfolio_research(args):
+    """Shared by `portfolio` and `portfolio-watch`: runs the one-shot
+    screen/selection/allocation/backtest/forward-simulation pass."""
+    import datetime
+
+    config, provider, data_source = _build_portfolio_config_and_provider(args)
     llm = build_llm_client(config)
 
+    report = run_portfolio_research(
+        config,
+        llm,
+        provider,
+        budget=args.budget,
+        min_stocks=args.min_stocks,
+        max_stocks=args.max_stocks,
+        risk_free_rate=args.risk_free_rate,
+        market_risk_premium=args.market_risk_premium,
+        weight_cap=args.weight_cap,
+        min_weight=args.min_weight,
+        optimizer_steps=args.optimizer_steps,
+        forward_paths=args.forward_paths,
+        as_of=datetime.date.today().isoformat(),
+        data_source=data_source,
+    )
+    return report, data_source, provider
+
+
+def _run_portfolio(args) -> int:
     try:
-        report = run_portfolio_research(
-            config,
-            llm,
-            provider,
-            budget=args.budget,
-            min_stocks=args.min_stocks,
-            max_stocks=args.max_stocks,
-            risk_free_rate=args.risk_free_rate,
-            market_risk_premium=args.market_risk_premium,
-            weight_cap=args.weight_cap,
-            min_weight=args.min_weight,
-            optimizer_steps=args.optimizer_steps,
-            forward_paths=args.forward_paths,
-            as_of=datetime.date.today().isoformat(),
-            data_source=data_source,
-        )
+        report, _data_source, _provider = _run_portfolio_research(args)
     except RuntimeError as exc:
         print(f"오류: {exc}", file=sys.stderr)
         return 1
@@ -387,6 +443,89 @@ def _run_portfolio(args) -> int:
         print(f"Selected: {', '.join(c.symbol for c in report.selected)}")
     else:
         print(memo)
+    return 0
+
+
+def _build_watch_price_provider(args, screening_provider):
+    """A lighter-weight provider for portfolio-watch's per-tick refresh:
+    only `last_price` is read each tick, so there's no reason to re-fetch
+    a full year of history or fundamentals/news on every single tick the
+    way the initial screen needs to. Offline, the screening provider
+    itself is reused so `SimulatedFeed`'s per-symbol walk keeps advancing
+    tick to tick instead of resetting."""
+    if not args.live:
+        return screening_provider
+
+    if args.data_provider == "alphavantage":
+        from trading_agent.data.alphavantage_provider import AlphaVantageFeed
+
+        av = DEFAULT_CONFIG.alphavantage
+        return AlphaVantageFeed(
+            api_key=av.api_key,
+            requests_per_minute=av.requests_per_minute,
+            include_fundamentals=False,
+            include_news=False,
+            include_realtime_quote=True,
+        )
+
+    from trading_agent.data.yfinance_provider import YFinanceFeed
+
+    return YFinanceFeed(period="5d", interval="1d")
+
+
+def _run_portfolio_watch(args) -> int:
+    try:
+        report, data_source, screening_provider = _run_portfolio_research(args)
+    except RuntimeError as exc:
+        print(f"오류: {exc}", file=sys.stderr)
+        return 1
+
+    print("=" * 60)
+    print("DISCLAIMER: read-only price tracking. No trades are placed by this command.")
+    print(f"Selected: {', '.join(c.symbol for c in report.selected)}")
+    print(f"Budget: ${report.budget:,.2f}  |  Data source: {data_source}")
+    print("=" * 60)
+
+    watch_provider = _build_watch_price_provider(args, screening_provider)
+    watcher = PortfolioWatcher(report.allocation, report.leftover_cash, watch_provider)
+
+    dashboard_server = None
+    dashboard_state = None
+    if args.dashboard:
+        dashboard_state = PortfolioDashboardState(
+            data_source=data_source,
+            budget=report.budget,
+            benchmark_symbol=report.benchmark_symbol,
+            selection_summary=[
+                {
+                    "symbol": c.symbol,
+                    "sector": c.sector,
+                    "composite_score": c.composite_score,
+                    "signal": c.debate.consensus_signal.value,
+                }
+                for c in report.selected
+            ],
+        )
+        dashboard_server = start_portfolio_dashboard_server(dashboard_state, port=args.dashboard_port)
+        print(f"Dashboard: http://127.0.0.1:{args.dashboard_port}")
+
+    def on_tick(i, tick) -> None:
+        print(
+            f"\n[tick {i} | {time.strftime('%H:%M:%S')}] value=${tick.total_value:,.2f} "
+            f"pnl={tick.total_pnl_dollars:+,.2f} ({tick.total_pnl_pct:+.2%})"
+        )
+        if tick.errors:
+            print(f"  fetch errors (showing last-known price instead): {', '.join(tick.errors)}")
+        if dashboard_state is not None:
+            dashboard_state.record_tick(tick)
+
+    try:
+        run_portfolio_watch_loop(watcher, args.interval, args.max_iterations, on_tick)
+    except KeyboardInterrupt:
+        print("\nStopped (Ctrl+C).")
+    finally:
+        if dashboard_server is not None:
+            dashboard_server.shutdown()
     return 0
 
 
@@ -444,39 +583,22 @@ def main(argv: list[str] | None = None) -> int:
         "US-equity portfolio from a fixed cash budget, with MPT-based sizing, a "
         "trailing backtest, and a 3-month forward Monte Carlo projection.",
     )
-    portfolio_cmd.add_argument("--budget", type=float, default=25_000.0, help="Total cash to allocate.")
-    portfolio_cmd.add_argument("--min-stocks", type=int, default=2)
-    portfolio_cmd.add_argument("--max-stocks", type=int, default=5)
-    portfolio_cmd.add_argument("--risk-free-rate", type=float, default=0.045, help="Annual, e.g. 0.045 = 4.5%%.")
-    portfolio_cmd.add_argument("--market-risk-premium", type=float, default=0.05, help="Annual equity risk premium.")
-    portfolio_cmd.add_argument("--weight-cap", type=float, default=0.60, help="Max weight for any single name.")
-    portfolio_cmd.add_argument("--min-weight", type=float, default=0.05, help="Min weight for each selected name.")
-    portfolio_cmd.add_argument("--optimizer-steps", type=int, default=25, help="Weight-grid resolution (1/steps).")
-    portfolio_cmd.add_argument("--forward-paths", type=int, default=2000, help="Monte Carlo path count.")
-    portfolio_cmd.add_argument("--min-lookback", type=int, default=260, help="Offline-mode history length (bars).")
-    portfolio_cmd.add_argument(
-        "--live",
-        action="store_true",
-        help="Use real market data instead of the simulated feed (backend picked by --data-provider).",
-    )
-    portfolio_cmd.add_argument(
-        "--data-provider",
-        choices=["yfinance", "alphavantage"],
-        default="yfinance",
-        help="Live data backend for --live. 'yfinance' (default, Yahoo Finance) or "
-        "'alphavantage' (needs ALPHAVANTAGE_API_KEY; useful when yfinance's TLS "
-        "fingerprinting doesn't survive a network's TLS-intercepting proxy). Alpha "
-        "Vantage's free tier has a tight request quota — expect slow, throttled "
-        "screening across this command's ~19-name universe.",
-    )
-    portfolio_cmd.add_argument(
-        "--period",
-        default="1y",
-        help="History window when --live is set with --data-provider yfinance. Ignored "
-        "for alphavantage, which always fetches full daily history.",
-    )
-    portfolio_cmd.add_argument("--kronos", action="store_true", help="Use the Kronos forecaster if available.")
+    _add_portfolio_research_args(portfolio_cmd)
     portfolio_cmd.add_argument("--out", default=None, help="Write the full Markdown memo to this path instead of stdout.")
+
+    portfolio_watch_cmd = sub.add_parser(
+        "portfolio-watch",
+        help="Run the same selection/allocation as `portfolio` once, then continuously "
+        "re-price the resulting positions and serve a live local dashboard. Read-only: "
+        "this never re-screens, re-optimizes, or places any order.",
+    )
+    _add_portfolio_research_args(portfolio_watch_cmd)
+    portfolio_watch_cmd.add_argument("--interval", type=float, default=60.0, help="Seconds between price refreshes.")
+    portfolio_watch_cmd.add_argument(
+        "--max-iterations", type=int, default=None, help="Stop after this many ticks (default: run until Ctrl+C)."
+    )
+    portfolio_watch_cmd.add_argument("--dashboard", action="store_true", help="Serve a live local dashboard in your browser.")
+    portfolio_watch_cmd.add_argument("--dashboard-port", type=int, default=8788)
 
     args = parser.parse_args(argv)
 
@@ -488,6 +610,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_backtest(args)
     if args.command == "portfolio":
         return _run_portfolio(args)
+    if args.command == "portfolio-watch":
+        return _run_portfolio_watch(args)
 
     return 1
 
