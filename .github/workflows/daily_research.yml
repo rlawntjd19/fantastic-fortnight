@@ -23,8 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: claude/stock-market-ai-agents-ds5sj9
 
       - uses: actions/setup-python@v5
         with:
@@ -53,5 +51,5 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "Daily research committee run: $(date -u +%Y-%m-%d)"
-            git push origin HEAD:claude/stock-market-ai-agents-ds5sj9
+            git push origin HEAD:${{ github.ref_name }}
           fi
