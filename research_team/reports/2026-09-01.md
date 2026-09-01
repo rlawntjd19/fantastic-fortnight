@@ -17,26 +17,17 @@ Basket-average alpha vs SPY across 5 open position(s): +0.00pp (OKR target: +5.0
 ## Portfolio Manager (CIO) decision log — chain of thought
 
 - Step 1 (Universe screen, upstream): 40 candidates cleared the full eligibility rubric — NYSE/AMEX/NASDAQ-listed stock, ADR, or ETF; no open-end mutual funds; no raw index tickers; price > $5.00; market cap > $2B for stocks (well above the $500M rubric floor, per the 'no small-cap' mandate) or AUM > $500M for ETFs.
-- Step 2 (Exclude already-held names): 40 of 40 candidates remain after removing 0 symbol(s) already in the open basket (rotation, not duplication).
-- Step 3 (Directional filter): 28 of 40 candidates carry a net-bullish committee consensus (technical + fundamental + sentiment + macro + forecast desks, weighted by each desk's own confidence) for the 2-3 month horizon.
+- Step 2 (Exclude already-held names): 35 of 40 candidates remain after removing 5 symbol(s) already in the open basket (rotation, not duplication).
+- Step 3 (Directional filter): 23 of 35 candidates carry a net-bullish committee consensus (technical + fundamental + sentiment + macro + forecast desks, weighted by each desk's own confidence) for the 2-3 month horizon.
 - Step 4 (Rank by composite conviction): candidates ranked by a composite score blending (a) the weighted analyst-desk consensus and (b) 10-bar relative strength vs. SPY, since the OKR is outperformance, not just a positive return.
-- Step 5 (Diversification cap): max 2 new picks per sector, filling 5 of 5 open slot(s).
+- Step 5 (Diversification cap): max 2 new picks per sector, filling 0 of 0 open slot(s).
 - Step 6 (Floor check): minimum basket size of 2 already met, no relaxation needed.
 
-CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction high
+CIO summary: [offline-stub] No new names met the bar this run; holding the existing basket unchanged.
 
 ## New entries today
 
-- **CRM** (stock, Technology) — conviction: high, composite score +1.00, entry $257.54
-  - [offline-stub] Bull case: [offline-stub] SMA10 (220.28) above SMA30 (196.36): uptrend Relative strength vs SPY (10-bar): +35.6%.
-- **ADBE** (stock, Technology) — conviction: high, composite score +1.00, entry $292.79
-  - [offline-stub] Bull case: [offline-stub] SMA10 (278.02) above SMA30 (259.64): uptrend Relative strength vs SPY (10-bar): +16.0%.
-- **MRK** (stock, Healthcare) — conviction: high, composite score +0.98, entry $147.76
-  - [offline-stub] Bull case: [offline-stub] SMA10 (149.48) above SMA30 (136.85): uptrend Relative strength vs SPY (10-bar): +9.4%.
-- **NFLX** (stock, Communication Services) — conviction: high, composite score +0.89, entry $81.05
-  - [offline-stub] Bull case: [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend Relative strength vs SPY (10-bar): +7.3%.
-- **V** (stock, Financial Services) — conviction: high, composite score +0.86, entry $379.37
-  - [offline-stub] Bull case: [offline-stub] SMA10 (375.76) above SMA30 (366.77): uptrend Relative strength vs SPY (10-bar): +6.4%.
+None — the existing basket was held unchanged.
 
 ## Standing basket
 
@@ -92,7 +83,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] No opposing evidence found.
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend
   - **technical_analyst**: bullish (conf 0.75) — [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend
-  - **fundamental_analyst**: bullish (conf 0.60) — [offline-stub] P/E 25.7: fair value
+  - **fundamental_analyst**: bullish (conf 0.60) — [offline-stub] P/E 25.5: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bullish (conf 0.43) — [offline-stub] heuristic 10-bar forecast: +5.4% expected move (dispersion 6.5%, n=1)
@@ -103,7 +94,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] No opposing evidence found.
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (492.98) above SMA30 (466.52): uptrend
   - **technical_analyst**: bullish (conf 0.75) — [offline-stub] SMA10 (492.98) above SMA30 (466.52): uptrend
-  - **fundamental_analyst**: bullish (conf 0.70) — [offline-stub] P/E 28.6: fair value
+  - **fundamental_analyst**: bullish (conf 0.70) — [offline-stub] P/E 28.2: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bullish (conf 0.19) — [offline-stub] heuristic 10-bar forecast: +1.7% expected move (dispersion 4.3%, n=1)
@@ -114,7 +105,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] No opposing evidence found.
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (375.76) above SMA30 (366.77): uptrend
   - **technical_analyst**: bullish (conf 0.75) — [offline-stub] SMA10 (375.76) above SMA30 (366.77): uptrend
-  - **fundamental_analyst**: bullish (conf 0.40) — [offline-stub] P/E 32.5: richly valued
+  - **fundamental_analyst**: bullish (conf 0.40) — [offline-stub] P/E 32.3: richly valued
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bullish (conf 0.18) — [offline-stub] heuristic 10-bar forecast: +1.6% expected move (dispersion 3.8%, n=1)
@@ -136,7 +127,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] No opposing evidence found.
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (107.99) above SMA30 (102.63): uptrend
   - **technical_analyst**: bullish (conf 0.75) — [offline-stub] SMA10 (107.99) above SMA30 (102.63): uptrend
-  - **fundamental_analyst**: bullish (conf 0.30) — [offline-stub] P/E 22.3: fair value
+  - **fundamental_analyst**: bullish (conf 0.30) — [offline-stub] P/E 22.2: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bullish (conf 0.47) — [offline-stub] heuristic 10-bar forecast: +5.1% expected move (dispersion 5.7%, n=1)
@@ -180,7 +171,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] No opposing evidence found.
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (269.13) above SMA30 (261.85): uptrend
   - **technical_analyst**: bullish (conf 0.75) — [offline-stub] SMA10 (269.13) above SMA30 (261.85): uptrend
-  - **fundamental_analyst**: bullish (conf 0.20) — [offline-stub] P/E 31.1: richly valued
+  - **fundamental_analyst**: bullish (conf 0.20) — [offline-stub] P/E 30.8: richly valued
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bullish (conf 0.29) — [offline-stub] heuristic 10-bar forecast: +2.6% expected move (dispersion 3.8%, n=1)
@@ -191,7 +182,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] No opposing evidence found.
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (146.31) above SMA30 (139.72): uptrend
   - **technical_analyst**: bullish (conf 0.75) — [offline-stub] SMA10 (146.31) above SMA30 (139.72): uptrend
-  - **fundamental_analyst**: bullish (conf 0.50) — [offline-stub] P/E 25.9: fair value
+  - **fundamental_analyst**: bullish (conf 0.50) — [offline-stub] P/E 25.6: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bullish (conf 0.12) — [offline-stub] heuristic 10-bar forecast: +1.5% expected move (dispersion 8.1%, n=1)
@@ -224,7 +215,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] heuristic 10-bar forecast: -0.2% expected move (dispersion 2.5%, n=1)
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (356.11) above SMA30 (355.85): uptrend
   - **technical_analyst**: bullish (conf 0.25) — [offline-stub] SMA10 (356.11) above SMA30 (355.85): uptrend
-  - **fundamental_analyst**: bullish (conf 0.60) — [offline-stub] P/E 15.3: fair value
+  - **fundamental_analyst**: bullish (conf 0.60) — [offline-stub] P/E 15.2: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: neutral (conf 0.03) — [offline-stub] heuristic 10-bar forecast: -0.2% expected move (dispersion 2.5%, n=1)
@@ -235,7 +226,7 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 - Bear case: [offline-stub] No opposing evidence found.
 - Manager rationale: [offline-stub] Bull case: [offline-stub] SMA10 (216.64) above SMA30 (213.20): uptrend
   - **technical_analyst**: bullish (conf 0.25) — [offline-stub] SMA10 (216.64) above SMA30 (213.20): uptrend
-  - **fundamental_analyst**: bullish (conf 0.70) — [offline-stub] P/E 27.5: fair value
+  - **fundamental_analyst**: bullish (conf 0.70) — [offline-stub] P/E 27.9: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bullish (conf 0.18) — [offline-stub] heuristic 10-bar forecast: +2.6% expected move (dispersion 9.1%, n=1)
@@ -319,11 +310,11 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 
 ### META (stock, Communication Services) — composite +0.25, consensus bullish (conf 0.45)
 - Relative strength vs SPY (10-bar): +1.3%
-- Bull case: [offline-stub] P/E 21.8: fair value
+- Bull case: [offline-stub] P/E 21.6: fair value
 - Bear case: [offline-stub] SMA10 (561.21) below SMA30 (580.95): downtrend
-- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 21.8: fair value
+- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 21.6: fair value
   - **technical_analyst**: bearish (conf 0.25) — [offline-stub] SMA10 (561.21) below SMA30 (580.95): downtrend
-  - **fundamental_analyst**: bullish (conf 0.70) — [offline-stub] P/E 21.8: fair value
+  - **fundamental_analyst**: bullish (conf 0.70) — [offline-stub] P/E 21.6: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bearish (conf 0.11) — [offline-stub] heuristic 10-bar forecast: -1.2% expected move (dispersion 5.8%, n=1)
@@ -363,22 +354,22 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 
 ### MCD (stock, Consumer Cyclical) — composite -0.00, consensus neutral (conf 0.14)
 - Relative strength vs SPY (10-bar): -0.0%
-- Bull case: [offline-stub] P/E 21.5: fair value
+- Bull case: [offline-stub] P/E 21.4: fair value
 - Bear case: [offline-stub] SMA10 (267.07) below SMA30 (269.08): downtrend
-- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 21.5: fair value
+- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 21.4: fair value
   - **technical_analyst**: bearish (conf 0.75) — [offline-stub] SMA10 (267.07) below SMA30 (269.08): downtrend
-  - **fundamental_analyst**: bullish (conf 0.30) — [offline-stub] P/E 21.5: fair value
+  - **fundamental_analyst**: bullish (conf 0.30) — [offline-stub] P/E 21.4: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: neutral (conf 0.10) — [offline-stub] heuristic 10-bar forecast: -0.9% expected move (dispersion 3.9%, n=1)
 
 ### GS (stock, Financial Services) — composite -0.07, consensus neutral (conf 0.08)
 - Relative strength vs SPY (10-bar): -1.7%
-- Bull case: [offline-stub] P/E 16.0: fair value
+- Bull case: [offline-stub] P/E 15.8: fair value
 - Bear case: [offline-stub] SMA10 (1033.97) below SMA30 (1040.57): downtrend
-- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 16.0: fair value
+- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 15.8: fair value
   - **technical_analyst**: bearish (conf 0.75) — [offline-stub] SMA10 (1033.97) below SMA30 (1040.57): downtrend
-  - **fundamental_analyst**: bullish (conf 0.50) — [offline-stub] P/E 16.0: fair value
+  - **fundamental_analyst**: bullish (conf 0.50) — [offline-stub] P/E 15.8: fair value
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bearish (conf 0.13) — [offline-stub] heuristic 10-bar forecast: -1.3% expected move (dispersion 4.6%, n=1)
@@ -440,11 +431,11 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 
 ### HON (stock, Industrials) — composite -0.34, consensus bearish (conf 0.19)
 - Relative strength vs SPY (10-bar): -6.2%
-- Bull case: [offline-stub] P/E 8.4: reasonably valued or cheap
+- Bull case: [offline-stub] P/E 8.2: reasonably valued or cheap
 - Bear case: [offline-stub] SMA10 (218.61) below SMA30 (232.69): downtrend
-- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 8.4: reasonably valued or cheap
+- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 8.2: reasonably valued or cheap
   - **technical_analyst**: bearish (conf 0.50) — [offline-stub] SMA10 (218.61) below SMA30 (232.69): downtrend
-  - **fundamental_analyst**: bullish (conf 0.40) — [offline-stub] P/E 8.4: reasonably valued or cheap
+  - **fundamental_analyst**: bullish (conf 0.40) — [offline-stub] P/E 8.2: reasonably valued or cheap
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bearish (conf 0.46) — [offline-stub] heuristic 10-bar forecast: -7.4% expected move (dispersion 5.8%, n=1)
@@ -462,11 +453,11 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 
 ### GE (stock, Industrials) — composite -0.47, consensus bearish (conf 0.30)
 - Relative strength vs SPY (10-bar): -8.4%
-- Bull case: [offline-stub] P/E 40.3: richly valued
+- Bull case: [offline-stub] P/E 39.5: richly valued
 - Bear case: [offline-stub] SMA10 (349.11) below SMA30 (357.91): downtrend
-- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 40.3: richly valued
+- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 39.5: richly valued
   - **technical_analyst**: bearish (conf 0.75) — [offline-stub] SMA10 (349.11) below SMA30 (357.91): downtrend
-  - **fundamental_analyst**: bullish (conf 0.40) — [offline-stub] P/E 40.3: richly valued
+  - **fundamental_analyst**: bullish (conf 0.40) — [offline-stub] P/E 39.5: richly valued
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bearish (conf 0.45) — [offline-stub] heuristic 10-bar forecast: -5.8% expected move (dispersion 6.1%, n=1)
@@ -484,11 +475,11 @@ CIO summary: [offline-stub] CRM (Technology): composite score +1.00, conviction 
 
 ### CAT (stock, Industrials) — composite -0.56, consensus bearish (conf 0.46)
 - Relative strength vs SPY (10-bar): -8.8%
-- Bull case: [offline-stub] P/E 34.5: richly valued
+- Bull case: [offline-stub] P/E 34.4: richly valued
 - Bear case: [offline-stub] SMA10 (815.93) below SMA30 (841.63): downtrend
-- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 34.5: richly valued
+- Manager rationale: [offline-stub] Bull case: [offline-stub] P/E 34.4: richly valued
   - **technical_analyst**: bearish (conf 0.75) — [offline-stub] SMA10 (815.93) below SMA30 (841.63): downtrend
-  - **fundamental_analyst**: bullish (conf 0.20) — [offline-stub] P/E 34.5: richly valued
+  - **fundamental_analyst**: bullish (conf 0.20) — [offline-stub] P/E 34.4: richly valued
   - **sentiment_analyst**: neutral (conf 0.00) — [offline-stub] No headlines available.
   - **macro_analyst**: bullish (conf 0.25) — [offline-stub] VIX 14.9: calm, risk-on regime
   - **forecast_analyst**: bearish (conf 0.45) — [offline-stub] heuristic 10-bar forecast: -4.7% expected move (dispersion 5.4%, n=1)
