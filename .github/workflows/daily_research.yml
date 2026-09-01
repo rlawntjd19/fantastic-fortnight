@@ -1,0 +1,57 @@
+name: Daily equity research committee
+
+# Runs the committee every US market weekday, screens the universe against
+# real Yahoo Finance data, marks the standing basket to market vs SPY, and
+# commits the day's report back into research_team/. The script itself
+# (trading_agent/committee/daily_report.py, RESEARCH_WINDOW_END) stops
+# screening for *new* picks after 2026-09-07 but keeps marking the existing
+# basket to market so the +5%-vs-SPY OKR stays trackable — this workflow
+# can be safely left enabled past that date, or disabled from the Actions
+# tab once the mandate's picking window is done.
+on:
+  schedule:
+    # 13:35 UTC = 9:35am US/Eastern during EDT (early September) — just
+    # after the NYSE/NASDAQ open, Mon-Fri.
+    - cron: "35 13 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/stock-market-ai-agents-ds5sj9
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt -r requirements-live.txt
+
+      - name: Run the daily committee cycle
+        env:
+          # Optional: set an ANTHROPIC_API_KEY repo secret for real LLM
+          # narrative text on top of the code-computed scores. Without it,
+          # the committee still runs fully (deterministic scoring, offline
+          # narrative stub) — see trading_agent/llm/client.py.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python -m trading_agent.cli daily-picks --live
+
+      - name: Commit and push today's report
+        run: |
+          git config user.name "daily-research-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add research_team/
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Daily research committee run: $(date -u +%Y-%m-%d)"
+            git push origin HEAD:claude/stock-market-ai-agents-ds5sj9
+          fi

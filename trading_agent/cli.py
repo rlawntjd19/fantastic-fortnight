@@ -20,9 +20,12 @@ import dataclasses
 import sys
 import time
 
+from trading_agent.committee.daily_report import run_daily_cycle
+from trading_agent.committee.performance_tracker import DEFAULT_STATE_PATH, load_state, save_state
+from trading_agent.committee.render import write_report
 from trading_agent.config import DEFAULT_CONFIG
 from trading_agent.dashboard import DashboardState, start_dashboard_server
-from trading_agent.data.factory import build_market_data_provider
+from trading_agent.data.factory import build_macro_provider, build_market_data_provider
 from trading_agent.data.providers import SimulatedFeed
 from trading_agent.engine.backtest import ReplayFeed, run_backtest
 from trading_agent.engine.journal import TradeJournal, record_execution
@@ -30,6 +33,7 @@ from trading_agent.engine.live_runner import TickResult, run_loop
 from trading_agent.engine.orchestrator import TradingCycle
 from trading_agent.engine.paper_broker import PaperBroker
 from trading_agent.engine.risk_controls import DailyCircuitBreaker
+from trading_agent.forecast.factory import build_price_forecaster
 from trading_agent.llm.client import build_llm_client
 
 
@@ -296,6 +300,70 @@ def _run_backtest(args) -> int:
     return 0
 
 
+def _run_daily_picks(args) -> int:
+    import datetime as dt
+
+    config = _build_config(args)
+    llm = build_llm_client(config)
+    provider = build_market_data_provider(config)
+    macro_provider = build_macro_provider(config)
+    forecaster = build_price_forecaster(config)
+
+    real_out_dir = "research_team/reports"
+    out_dir = args.out_dir
+    state_path = args.state_path
+    if args.live:
+        out_dir = out_dir or real_out_dir
+        state_path = state_path or DEFAULT_STATE_PATH
+    else:
+        # Every real pick must be priced with live data, so a run without
+        # --live never silently lands in the tracked report/state files —
+        # it's redirected to a clearly-separate dry-run path instead, and
+        # refused outright if the caller explicitly pointed at the real one.
+        if out_dir is None:
+            out_dir = f"{real_out_dir}/_dry_run"
+        elif out_dir == real_out_dir:
+            print(
+                f"[trading_agent] refusing to write dry-run (non --live) output into {real_out_dir!r}: "
+                "every real pick must be priced with live data. Pass --live, or point --out-dir "
+                "somewhere other than the tracked report directory.",
+                file=sys.stderr,
+            )
+            return 1
+        if state_path is None:
+            state_path = "research_team/state/_dry_run_portfolio.json"
+        elif state_path == DEFAULT_STATE_PATH:
+            print(
+                f"[trading_agent] refusing to write dry-run (non --live) state into {DEFAULT_STATE_PATH!r}: "
+                "every real pick must be priced with live data. Pass --live, or point --state-path "
+                "somewhere other than the tracked state file.",
+                file=sys.stderr,
+            )
+            return 1
+
+    state = load_state(state_path)
+    run_date = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
+
+    print("=" * 60)
+    print("DISCLAIMER: research/education tool output, not investment advice.")
+    print(f"Daily equity research committee — {run_date.isoformat()}")
+    print("=" * 60)
+
+    report = run_daily_cycle(config, llm, provider, macro_provider, forecaster, state, run_date=run_date)
+    save_state(state, state_path)
+    # Live runs keep the traditional top-level research_team/LATEST_PICKS.md;
+    # dry runs stay fully contained inside out_dir (see write_report's docstring).
+    latest_path = "research_team/LATEST_PICKS.md" if args.live else None
+    md_path, json_path = write_report(report, out_dir, latest_path=latest_path)
+
+    print(report.okr_summary)
+    print(f"\nEntries today: {[p.symbol for p in report.entries]}")
+    print(f"Exits today  : {[p.symbol for p in report.exits]}")
+    print(f"Open basket  : {[p.symbol for p in report.open_positions]}")
+    print(f"\nWrote {md_path}\nWrote {json_path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="trading_agent")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -344,6 +412,38 @@ def main(argv: list[str] | None = None) -> int:
         help="Bars of warm-up history before the first decision (needs enough for e.g. SMA30/RSI14).",
     )
 
+    daily_picks_cmd = sub.add_parser(
+        "daily-picks",
+        help="Run the daily equity research committee: screen the universe, mark the "
+        "standing basket to market against SPY, and pick 2-5 names for a 2-3mo horizon.",
+    )
+    daily_picks_cmd.add_argument(
+        "--live",
+        action="store_true",
+        help="Use real market data (Yahoo Finance via yfinance) instead of the simulated feed. "
+        "Every real pick must be priced with live data, so without this flag the run writes to a "
+        "'_dry_run' path instead of research_team/'s tracked report/state files, unless --out-dir "
+        "/--state-path is given explicitly.",
+    )
+    daily_picks_cmd.add_argument("--period", default="6mo", help="History window when --live is set.")
+    daily_picks_cmd.add_argument(
+        "--kronos", action="store_true", help="Use the Kronos price-forecasting analyst if installed."
+    )
+    daily_picks_cmd.add_argument(
+        "--out-dir",
+        default=None,
+        help="Directory to write the day's report into. Defaults to research_team/reports when --live "
+        "is set, or research_team/reports/_dry_run otherwise — see --live's help for why.",
+    )
+    daily_picks_cmd.add_argument(
+        "--state-path",
+        default=None,
+        help="Where the standing basket is persisted between runs. Same --live-dependent default as --out-dir.",
+    )
+    daily_picks_cmd.add_argument(
+        "--date", default=None, help="Override the run date (YYYY-MM-DD); defaults to today."
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "signal":
@@ -352,6 +452,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_watch(args)
     if args.command == "backtest":
         return _run_backtest(args)
+    if args.command == "daily-picks":
+        return _run_daily_picks(args)
 
     return 1
 
