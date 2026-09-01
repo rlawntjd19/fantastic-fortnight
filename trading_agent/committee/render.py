@@ -108,17 +108,25 @@ def _report_to_jsonable(report: CommitteeReport) -> dict:
     return json.loads(json.dumps(dataclasses.asdict(report), default=default))
 
 
-def write_report(report: CommitteeReport, out_dir: str) -> tuple[str, str]:
+def write_report(report: CommitteeReport, out_dir: str, latest_path: str | None = None) -> tuple[str, str]:
+    """Writes `{out_dir}/{run_date}.md`/`.json` plus a copy at `latest_path`
+    (defaults to `{out_dir}/LATEST_PICKS.md`, i.e. fully contained inside
+    `out_dir` — callers that want the traditional top-level
+    `research_team/LATEST_PICKS.md` location must pass it explicitly, so a
+    caller writing into an isolated/dry-run `out_dir` can never leak a file
+    out of it by accident)."""
     os.makedirs(out_dir, exist_ok=True)
     md_path = os.path.join(out_dir, f"{report.run_date}.md")
     json_path = os.path.join(out_dir, f"{report.run_date}.json")
-    latest_path = os.path.join(out_dir, "..", "LATEST_PICKS.md")
+    if latest_path is None:
+        latest_path = os.path.join(out_dir, "LATEST_PICKS.md")
 
     markdown = to_markdown(report)
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(markdown)
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(_report_to_jsonable(report), f, indent=2, ensure_ascii=False)
+    os.makedirs(os.path.dirname(latest_path) or ".", exist_ok=True)
     with open(latest_path, "w", encoding="utf-8") as f:
         f.write(markdown)
 

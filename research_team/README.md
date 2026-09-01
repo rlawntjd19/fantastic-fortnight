@@ -119,17 +119,27 @@ pip install -r requirements-live.txt
 python -m trading_agent.cli daily-picks --live
 ```
 
-`--date 2026-08-31`'s first committed report in this repo's history was
-generated **offline** (`SimulatedFeed`) — Yahoo Finance was unreachable
-from the sandbox this was built in (every `yfinance` call came back
-connection-reset through the network proxy there). `SimulatedFeed` doesn't
-expose `market_cap`/`exchange`/`total_assets`, so the exclusion rules in
-`committee/universe.screen_ineligible` that key off those fields simply
-never trigger offline — every candidate passes screening (a missing field
-is "can't verify, don't block", the same defensive pattern the rest of
-this repo's analysts use for fundamentals). That's fine for a dry run/CI
-smoke test; the eligibility rubric is only actually enforced once `--live`
-data is flowing, which is what the GitHub Actions runner below uses.
+**Every real pick must be priced with live data** — so `daily-picks`
+without `--live` never writes into the tracked `research_team/reports/`
+or `research_team/state/portfolio.json`: it's automatically redirected to
+`research_team/reports/_dry_run/` and `research_team/state/_dry_run_portfolio.json`
+instead (both gitignored), and refuses outright if you explicitly point
+`--out-dir`/`--state-path` at the real ones without `--live`. This repo's
+own history briefly had a real bug from this exact mistake — an early
+offline dry run got committed into the tracked state with fake prices,
+which would have silently corrupted the alpha-vs-SPY math once live runs
+started layering on top of it — hence the hard guard now, not just a
+docs warning.
+
+Offline mode is still useful for a fast dry run/CI smoke test, but it's
+worth knowing what it can't check: `SimulatedFeed` doesn't expose
+`market_cap`/`exchange`/`total_assets`, so the exclusion rules in
+`committee/universe.screen_ineligible` that key off those fields never
+trigger offline — every candidate passes screening (a missing field is
+"can't verify, don't block", the same defensive pattern the rest of this
+repo's analysts use for fundamentals). The eligibility rubric is only
+actually enforced once `--live` data is flowing, which is what the GitHub
+Actions runner below uses.
 
 Each run writes `research_team/reports/YYYY-MM-DD.md` (+ a parallel
 `.json`) and overwrites `research_team/LATEST_PICKS.md` with the same

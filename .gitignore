@@ -5,3 +5,5 @@ __pycache__/
 trading_agent_memory.json
 trading_agent_journal.jsonl
 .env
+research_team/reports/_dry_run/
+research_team/state/_dry_run_portfolio.json

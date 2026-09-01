@@ -309,7 +309,39 @@ def _run_daily_picks(args) -> int:
     macro_provider = build_macro_provider(config)
     forecaster = build_price_forecaster(config)
 
-    state = load_state(args.state_path)
+    real_out_dir = "research_team/reports"
+    out_dir = args.out_dir
+    state_path = args.state_path
+    if args.live:
+        out_dir = out_dir or real_out_dir
+        state_path = state_path or DEFAULT_STATE_PATH
+    else:
+        # Every real pick must be priced with live data, so a run without
+        # --live never silently lands in the tracked report/state files —
+        # it's redirected to a clearly-separate dry-run path instead, and
+        # refused outright if the caller explicitly pointed at the real one.
+        if out_dir is None:
+            out_dir = f"{real_out_dir}/_dry_run"
+        elif out_dir == real_out_dir:
+            print(
+                f"[trading_agent] refusing to write dry-run (non --live) output into {real_out_dir!r}: "
+                "every real pick must be priced with live data. Pass --live, or point --out-dir "
+                "somewhere other than the tracked report directory.",
+                file=sys.stderr,
+            )
+            return 1
+        if state_path is None:
+            state_path = "research_team/state/_dry_run_portfolio.json"
+        elif state_path == DEFAULT_STATE_PATH:
+            print(
+                f"[trading_agent] refusing to write dry-run (non --live) state into {DEFAULT_STATE_PATH!r}: "
+                "every real pick must be priced with live data. Pass --live, or point --state-path "
+                "somewhere other than the tracked state file.",
+                file=sys.stderr,
+            )
+            return 1
+
+    state = load_state(state_path)
     run_date = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
 
     print("=" * 60)
@@ -318,8 +350,11 @@ def _run_daily_picks(args) -> int:
     print("=" * 60)
 
     report = run_daily_cycle(config, llm, provider, macro_provider, forecaster, state, run_date=run_date)
-    save_state(state, args.state_path)
-    md_path, json_path = write_report(report, args.out_dir)
+    save_state(state, state_path)
+    # Live runs keep the traditional top-level research_team/LATEST_PICKS.md;
+    # dry runs stay fully contained inside out_dir (see write_report's docstring).
+    latest_path = "research_team/LATEST_PICKS.md" if args.live else None
+    md_path, json_path = write_report(report, out_dir, latest_path=latest_path)
 
     print(report.okr_summary)
     print(f"\nEntries today: {[p.symbol for p in report.entries]}")
@@ -385,17 +420,25 @@ def main(argv: list[str] | None = None) -> int:
     daily_picks_cmd.add_argument(
         "--live",
         action="store_true",
-        help="Use real market data (Yahoo Finance via yfinance) instead of the simulated feed.",
+        help="Use real market data (Yahoo Finance via yfinance) instead of the simulated feed. "
+        "Every real pick must be priced with live data, so without this flag the run writes to a "
+        "'_dry_run' path instead of research_team/'s tracked report/state files, unless --out-dir "
+        "/--state-path is given explicitly.",
     )
     daily_picks_cmd.add_argument("--period", default="6mo", help="History window when --live is set.")
     daily_picks_cmd.add_argument(
         "--kronos", action="store_true", help="Use the Kronos price-forecasting analyst if installed."
     )
     daily_picks_cmd.add_argument(
-        "--out-dir", default="research_team/reports", help="Directory to write the day's report into."
+        "--out-dir",
+        default=None,
+        help="Directory to write the day's report into. Defaults to research_team/reports when --live "
+        "is set, or research_team/reports/_dry_run otherwise — see --live's help for why.",
     )
     daily_picks_cmd.add_argument(
-        "--state-path", default=DEFAULT_STATE_PATH, help="Where the standing basket is persisted between runs."
+        "--state-path",
+        default=None,
+        help="Where the standing basket is persisted between runs. Same --live-dependent default as --out-dir.",
     )
     daily_picks_cmd.add_argument(
         "--date", default=None, help="Override the run date (YYYY-MM-DD); defaults to today."
