@@ -55,6 +55,12 @@ RESEARCH_WINDOW_END = dt.date(2026, 9, 7)
 # than held indefinitely.
 MAX_HOLD_DAYS = 95
 
+# Outperformance-vs-SPY OKR band, in percentage points, over each
+# position's 2-3 month hold. A range, not a single number, since this is
+# explicitly a stretch target, not a pass/fail threshold.
+OKR_TARGET_LOW_PP = 10.0
+OKR_TARGET_HIGH_PP = 15.0
+
 _REL_STRENGTH_FULL_SCALE = 0.10  # a 10pp spread vs SPY maps to a full +-1 score contribution
 
 
@@ -225,7 +231,8 @@ def run_daily_cycle(
         avg_alpha = sum(r["alpha_pct"] for r in scoreboard) / len(scoreboard)
         okr_summary = (
             f"Basket-average alpha vs SPY across {len(scoreboard)} open position(s): {avg_alpha * 100:+.2f}pp "
-            f"(OKR target: +5.00pp or better over each position's 2-3 month hold)."
+            f"(OKR target: +{OKR_TARGET_LOW_PP:.0f}-{OKR_TARGET_HIGH_PP:.0f}pp or better over each position's "
+            f"2-3 month hold)."
         )
     else:
         okr_summary = "No open, price-verified positions yet — nothing to score against the OKR this run."

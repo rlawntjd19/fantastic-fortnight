@@ -1,6 +1,6 @@
 """Persists the standing basket day-over-day and marks it to market against
-SPY, so the +5%-vs-benchmark OKR is a running, checkable number instead of
-a one-time guess.
+SPY, so the +10-15pp-vs-benchmark OKR is a running, checkable number
+instead of a one-time guess.
 
 Plain JSON on disk (mirrors `engine/journal.py`'s append-only-file
 approach) — no database, easy to inspect or hand-edit, and diffable in git
@@ -43,7 +43,7 @@ def save_state(state: PortfolioState, path: str = DEFAULT_STATE_PATH) -> None:
 
 def alpha_pct(entry_price: float, current_price: float, benchmark_entry: float, benchmark_current: float) -> float:
     """Position return minus benchmark return over the same window — the
-    unit the +5% OKR is measured in."""
+    unit the +10-15pp OKR is measured in."""
     position_return = current_price / entry_price - 1.0
     benchmark_return = benchmark_current / benchmark_entry - 1.0
     return position_return - benchmark_return

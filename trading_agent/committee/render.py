@@ -20,7 +20,7 @@ def to_markdown(report: CommitteeReport) -> str:
         "only adds narrative on top of numbers that are already final."
     )
     lines.append("")
-    lines.append("## OKR scoreboard (target: outperform SPY by 5pp+ over each 2-3mo hold)")
+    lines.append("## OKR scoreboard (target: outperform SPY by 10-15pp over each 2-3mo hold)")
     lines.append("")
     lines.append(report.okr_summary)
     lines.append("")

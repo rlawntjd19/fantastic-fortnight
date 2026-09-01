@@ -3,14 +3,14 @@
 A team of AI equity-research-analyst agents that runs every US market
 weekday and maintains a standing shortlist of **2-5 US stocks and/or
 broad-market index ETFs**, sized for a **2-3 month holding horizon**, with
-the explicit (if admittedly hard) OKR of **beating SPY by 5 percentage
-points or more** over that horizon. Code lives in
+the explicit (if admittedly very ambitious) OKR of **beating SPY by
+10-15 percentage points** over that horizon. Code lives in
 `trading_agent/committee/`; this file is the design write-up, parallel to
 the main [README.md](../README.md) for the rest of the repo.
 
 > Research/education tool. Not investment advice. No system can guarantee
-> outperformance — a 5pp-over-SPY OKR is a target to aim the process at,
-> not a promise this process (or any process) can deliver.
+> outperformance — a 10-15pp-over-SPY OKR is a stretch target to aim the
+> process at, not a promise this process (or any process) can deliver.
 
 ## Why a committee, not one model call
 
@@ -95,8 +95,8 @@ price on the same entry date. Each day's run:
    even with no bearish signal, on schedule rather than indefinitely.
 
 That scoreboard is the first table in every day's report — it's the
-running, checkable answer to "are we actually beating SPY by 5pp," not a
-one-time backtest number.
+running, checkable answer to "are we actually beating SPY by 10-15pp," not
+a one-time backtest number.
 
 ## The 9/7 window
 

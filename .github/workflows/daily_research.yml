@@ -5,7 +5,7 @@ name: Daily equity research committee
 # commits the day's report back into research_team/. The script itself
 # (trading_agent/committee/daily_report.py, RESEARCH_WINDOW_END) stops
 # screening for *new* picks after 2026-09-07 but keeps marking the existing
-# basket to market so the +5%-vs-SPY OKR stays trackable — this workflow
+# basket to market so the +10-15pp-vs-SPY OKR stays trackable — this workflow
 # can be safely left enabled past that date, or disabled from the Actions
 # tab once the mandate's picking window is done.
 on:
