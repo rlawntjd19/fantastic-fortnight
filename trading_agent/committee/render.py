@@ -108,16 +108,27 @@ def _report_to_jsonable(report: CommitteeReport) -> dict:
     return json.loads(json.dumps(dataclasses.asdict(report), default=default))
 
 
-def write_report(report: CommitteeReport, out_dir: str, latest_path: str | None = None) -> tuple[str, str]:
-    """Writes `{out_dir}/{run_date}.md`/`.json` plus a copy at `latest_path`
+def write_report(
+    report: CommitteeReport,
+    out_dir: str,
+    latest_path: str | None = None,
+    run_id: str | None = None,
+) -> tuple[str, str]:
+    """Writes `{out_dir}/{run_id}.md`/`.json` plus a copy at `latest_path`
     (defaults to `{out_dir}/LATEST_PICKS.md`, i.e. fully contained inside
     `out_dir` — callers that want the traditional top-level
     `research_team/LATEST_PICKS.md` location must pass it explicitly, so a
     caller writing into an isolated/dry-run `out_dir` can never leak a file
-    out of it by accident)."""
+    out of it by accident).
+
+    `run_id` defaults to `report.run_date` (one report per day) — pass an
+    explicit timestamp-bearing id (e.g. `2026-09-02_1335Z`) for a pipeline
+    that runs more than once a day, so each run gets its own file instead
+    of one run's report overwriting another's from earlier the same day."""
+    run_id = run_id or report.run_date
     os.makedirs(out_dir, exist_ok=True)
-    md_path = os.path.join(out_dir, f"{report.run_date}.md")
-    json_path = os.path.join(out_dir, f"{report.run_date}.json")
+    md_path = os.path.join(out_dir, f"{run_id}.md")
+    json_path = os.path.join(out_dir, f"{run_id}.json")
     if latest_path is None:
         latest_path = os.path.join(out_dir, "LATEST_PICKS.md")
 

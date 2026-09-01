@@ -1,19 +1,33 @@
-name: Daily equity research committee
+name: Equity research committee
 
-# Runs the committee every US market weekday, screens the universe against
-# real Yahoo Finance data, marks the standing basket to market vs SPY, and
-# commits the day's report back into research_team/. The script itself
+# Runs the committee 5x on every US market weekday, screens the universe
+# against real Yahoo Finance data, marks the standing basket to market vs
+# SPY, and commits the report back into research_team/. Every run is
+# --live: trading_agent/cli.py's daily-picks refuses outright (exit 1, no
+# report written) if the live market-data provider couldn't actually be
+# built, rather than silently falling back to simulated prices — so a
+# committed report here is never fake data. The script itself
 # (trading_agent/committee/daily_report.py, RESEARCH_WINDOW_END) stops
 # screening for *new* picks after 2026-09-07 but keeps marking the existing
-# basket to market so the +10-15pp-vs-SPY OKR stays trackable — this workflow
-# can be safely left enabled past that date, or disabled from the Actions
-# tab once the mandate's picking window is done.
+# basket to market so the +10-15pp-vs-SPY OKR stays trackable — this
+# workflow can be safely left enabled past that date, or disabled from the
+# Actions tab once the mandate's picking window is done.
 on:
   schedule:
-    # 13:35 UTC = 9:35am US/Eastern during EDT (early September) — just
-    # after the NYSE/NASDAQ open, Mon-Fri.
-    - cron: "35 13 * * 1-5"
+    # All times US/Eastern during EDT (this window is entirely before the
+    # early-November DST change), spread across the NYSE/NASDAQ session:
+    - cron: "35 13 * * 1-5"  # 9:35am ET — just after the open
+    - cron: "0 15 * * 1-5"   # 11:00am ET — mid-morning
+    - cron: "30 16 * * 1-5"  # 12:30pm ET — midday
+    - cron: "0 18 * * 1-5"   # 2:00pm ET — afternoon
+    - cron: "45 19 * * 1-5"  # 3:45pm ET — just before the close
   workflow_dispatch: {}
+
+# Runs are ~85+ minutes apart by schedule, but a manual dispatch could land
+# close to a scheduled one — serialize instead of racing two pushes.
+concurrency:
+  group: equity-research-committee
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -32,7 +46,7 @@ jobs:
         run: |
           pip install -r requirements.txt -r requirements-live.txt
 
-      - name: Run the daily committee cycle
+      - name: Run the committee cycle
         env:
           # Optional: set an ANTHROPIC_API_KEY repo secret for real LLM
           # narrative text on top of the code-computed scores. Without it,
@@ -42,7 +56,7 @@ jobs:
         run: |
           python -m trading_agent.cli daily-picks --live
 
-      - name: Commit and push today's report
+      - name: Commit and push this run's report
         run: |
           git config user.name "daily-research-bot"
           git config user.email "actions@users.noreply.github.com"
@@ -50,6 +64,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Daily research committee run: $(date -u +%Y-%m-%d)"
+            git commit -m "Equity research committee run: $(date -u +%Y-%m-%dT%H:%MZ)"
             git push origin HEAD:${{ github.ref_name }}
           fi
