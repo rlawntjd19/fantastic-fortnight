@@ -14,9 +14,10 @@ Portfolio Manager (CIO) agent, that screens a large/mid-cap US stock and
 broad-index-ETF universe and maintains a standing **2-5 name shortlist**
 for a **2-3 month hold**, tracked against SPY toward an explicit
 **beat-the-benchmark-by-10-15pp** OKR. `.github/workflows/daily_research.yml`
-runs it every weekday and commits the report back to this branch — see
-that README for the chain-of-thought ranking logic, the eligibility
-rubric, and how the OKR scoreboard is tracked day over day.
+runs it 5 times across every trading day (always against real, live
+market data — never simulated) and commits each report back to this
+branch — see that README for the chain-of-thought ranking logic, the
+eligibility rubric, and how the OKR scoreboard is tracked run over run.
 
 ```bash
 python -m trading_agent.cli daily-picks --live

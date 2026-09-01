@@ -141,22 +141,30 @@ repo's analysts use for fundamentals). The eligibility rubric is only
 actually enforced once `--live` data is flowing, which is what the GitHub
 Actions runner below uses.
 
-Each run writes `research_team/reports/YYYY-MM-DD.md` (+ a parallel
-`.json`) and overwrites `research_team/LATEST_PICKS.md` with the same
+A `--live` run writes `research_team/reports/YYYY-MM-DD_HHMMZ.md` (+ a
+parallel `.json`, timestamped since the pipeline runs 5x a day now, not
+once) and overwrites `research_team/LATEST_PICKS.md` with the same
 content, and persists the standing basket to
-`research_team/state/portfolio.json`.
+`research_team/state/portfolio.json`. A dry run (no `--live`) uses the
+plain `YYYY-MM-DD.md` name instead, inside the gitignored `_dry_run/`
+path — see the guard described above.
 
-## Keeping it running every day without a live session
+## Keeping it running, 5x a day, without a live session
 
-`.github/workflows/daily_research.yml` runs `daily-picks --live` on a
-weekday cron (13:35 UTC ≈ 9:35am ET) and commits the day's report back to
-this branch — this is what actually satisfies "run every day," rather
-than relying on any one chat session staying open. It works with **no**
-`ANTHROPIC_API_KEY` secret configured (offline narrative stub, same
-deterministic scoring); add that secret in the repo's Settings → Secrets
-if real narrative text is wanted. Trigger it manually any time from the
-Actions tab (`workflow_dispatch`) instead of waiting for the next
-scheduled run.
+`.github/workflows/daily_research.yml` runs `daily-picks --live` five
+times across every US market weekday — 9:35am, 11:00am, 12:30pm, 2:00pm,
+and 3:45pm ET, spread across the trading session rather than one snapshot
+at the open — and commits each report back to this branch. This is what
+actually satisfies "run 5x a day," rather than relying on any one chat
+session staying open, and every run is real data or nothing:
+`cli._run_daily_picks` refuses outright (no report written) if `--live`
+was requested but the live market-data provider couldn't actually be
+built, instead of silently falling back to simulated prices. It works
+with **no** `ANTHROPIC_API_KEY` secret configured (offline narrative
+stub, same deterministic scoring); add that secret in the repo's Settings
+→ Secrets if real narrative text is wanted. Trigger it manually any time
+from the Actions tab (`workflow_dispatch`) instead of waiting for the
+next scheduled run.
 
 ## Tests
 

@@ -309,6 +309,24 @@ def _run_daily_picks(args) -> int:
     macro_provider = build_macro_provider(config)
     forecaster = build_price_forecaster(config)
 
+    if args.live:
+        # build_market_data_provider() falls back to SimulatedFeed if
+        # yfinance failed to import (see data/factory.py) — reasonable for
+        # the general-purpose signal/watch/backtest commands, but a report
+        # published as "live" must never actually be simulated prices. Fail
+        # loudly here instead of silently producing a fake-data report.
+        from trading_agent.data.yfinance_provider import YFinanceFeed
+
+        if not isinstance(provider, YFinanceFeed):
+            print(
+                "[trading_agent] --live was requested but the live market-data provider could not "
+                "be built (yfinance missing or failed to import) — refusing to produce a report "
+                "against simulated prices under a --live run. Fix the yfinance install and retry; "
+                "no report was written.",
+                file=sys.stderr,
+            )
+            return 1
+
     real_out_dir = "research_team/reports"
     out_dir = args.out_dir
     state_path = args.state_path
@@ -343,10 +361,14 @@ def _run_daily_picks(args) -> int:
 
     state = load_state(state_path)
     run_date = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
+    # Live runs fire multiple times per trading day, so the report filename
+    # carries a timestamp (not just the date) to avoid one run overwriting
+    # another's report; dry runs keep the plain date-only name unchanged.
+    run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d_%H%MZ") if args.live else run_date.isoformat()
 
     print("=" * 60)
     print("DISCLAIMER: research/education tool output, not investment advice.")
-    print(f"Daily equity research committee — {run_date.isoformat()}")
+    print(f"Equity research committee — {run_id}")
     print("=" * 60)
 
     report = run_daily_cycle(config, llm, provider, macro_provider, forecaster, state, run_date=run_date)
@@ -354,7 +376,7 @@ def _run_daily_picks(args) -> int:
     # Live runs keep the traditional top-level research_team/LATEST_PICKS.md;
     # dry runs stay fully contained inside out_dir (see write_report's docstring).
     latest_path = "research_team/LATEST_PICKS.md" if args.live else None
-    md_path, json_path = write_report(report, out_dir, latest_path=latest_path)
+    md_path, json_path = write_report(report, out_dir, latest_path=latest_path, run_id=run_id)
 
     print(report.okr_summary)
     print(f"\nEntries today: {[p.symbol for p in report.entries]}")
