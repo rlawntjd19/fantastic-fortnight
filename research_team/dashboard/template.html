@@ -1,0 +1,574 @@
+<title>Alpha Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef1ec;
+    --paper-dim: #e2e7de;
+    --panel: #ffffff;
+    --ink: #1a231d;
+    --ink-dim: #4d564a;
+    --muted: #767e70;
+    --line: #d7ddd0;
+    --line-strong: #c2c9b8;
+    --accent: #93641f;
+    --accent-strong: #7a5119;
+    --accent-soft: #f2e5cc;
+    --pos: #1e6f56;
+    --pos-soft: #dbeee4;
+    --neg: #a13f2c;
+    --neg-soft: #f5e2dc;
+    --neu: #6b7268;
+    --neu-soft: #e7e9e2;
+    --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12160f;
+      --paper-dim: #171c14;
+      --panel: #191f16;
+      --ink: #eaeee3;
+      --ink-dim: #b7bfae;
+      --muted: #8b9382;
+      --line: #2c3427;
+      --line-strong: #3a4432;
+      --accent: #d9a94f;
+      --accent-strong: #eec278;
+      --accent-soft: #35301e;
+      --pos: #55b596;
+      --pos-soft: #1c2f26;
+      --neg: #e08267;
+      --neg-soft: #332420;
+      --neu: #9aa190;
+      --neu-soft: #232a1e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12160f;
+    --paper-dim: #171c14;
+    --panel: #191f16;
+    --ink: #eaeee3;
+    --ink-dim: #b7bfae;
+    --muted: #8b9382;
+    --line: #2c3427;
+    --line-strong: #3a4432;
+    --accent: #d9a94f;
+    --accent-strong: #eec278;
+    --accent-soft: #35301e;
+    --pos: #55b596;
+    --pos-soft: #1c2f26;
+    --neg: #e08267;
+    --neg-soft: #332420;
+    --neu: #9aa190;
+    --neu-soft: #232a1e;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 28px 80px; }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    padding-bottom: 22px;
+    border-bottom: 2px solid var(--ink);
+    flex-wrap: wrap;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 8px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(34px, 5vw, 46px);
+    margin: 0;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .masthead-meta {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    line-height: 1.7;
+  }
+  .masthead-meta .date { font-size: 15px; color: var(--ink); font-weight: 600; }
+  .disclaimer {
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 62ch;
+  }
+
+  section { margin-top: 40px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 21px;
+    margin: 0;
+  }
+  .section-note { font-size: 12.5px; color: var(--muted); font-family: var(--font-mono); }
+
+  /* ---------- OKR hero ---------- */
+  .okr {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 28px 30px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 30px;
+    align-items: center;
+  }
+  .okr-figure { text-align: left; }
+  .okr-figure .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  .okr-number {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 52px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .okr-number.pos { color: var(--pos); }
+  .okr-number.neg { color: var(--neg); }
+  .okr-sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 8px; max-width: 30ch; }
+
+  .gauge-block { min-width: 0; }
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .gauge-labels strong { color: var(--ink); font-weight: 600; }
+  .gauge {
+    position: relative;
+    height: 10px;
+    background: var(--neu-soft);
+    border-radius: 999px;
+    overflow: visible;
+  }
+  .gauge-track { position: absolute; inset: 0; border-radius: 999px; overflow: hidden; }
+  .gauge-fill {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    border-radius: 999px;
+  }
+  .gauge-fill.pos { background: var(--pos); }
+  .gauge-fill.neg { background: var(--neg); }
+  .gauge-zero {
+    position: absolute; top: -3px; bottom: -3px; width: 2px;
+    background: var(--line-strong);
+  }
+  .gauge-target-band {
+    position: absolute; top: -5px; bottom: -5px;
+    background: var(--accent-soft);
+    border-left: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+    border-radius: 3px;
+  }
+  .gauge-target-band::after {
+    content: "target band";
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* ---------- Basket cards ---------- */
+  .basket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .position-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .position-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .ticker { font-family: var(--font-mono); font-weight: 600; font-size: 19px; letter-spacing: -0.01em; }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .chip.sector { background: var(--neu-soft); color: var(--ink-dim); }
+  .chip.pos { background: var(--pos-soft); color: var(--pos); }
+  .chip.neg { background: var(--neg-soft); color: var(--neg); }
+  .chip.neu { background: var(--neu-soft); color: var(--neu); }
+  .price-row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .price-row .val { color: var(--ink-dim); }
+  .alpha-row { display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .alpha-row .alpha-label { font-size: 11px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; }
+  .alpha-row .alpha-val { font-family: var(--font-mono); font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .thesis {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ---------- Activity ---------- */
+  .activity {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 16px 20px;
+    font-size: 13.5px;
+    color: var(--ink-dim);
+  }
+  .activity strong { color: var(--ink); }
+  .activity-list { margin: 8px 0 0; padding-left: 18px; }
+  .activity-list li { margin-bottom: 4px; }
+
+  /* ---------- CIO log ---------- */
+  .steps { display: flex; flex-direction: column; }
+  .step {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-text { font-size: 13.5px; color: var(--ink-dim); padding-top: 2px; }
+  .step-text b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Candidate table ---------- */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+  thead th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    padding: 10px 14px;
+    background: var(--paper-dim);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.held { background: var(--accent-soft); }
+  td.rank { font-family: var(--font-mono); color: var(--muted); }
+  td.tk { font-family: var(--font-mono); font-weight: 600; }
+  td.sector-cell { color: var(--ink-dim); white-space: normal; }
+  td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar-track { width: 70px; height: 6px; background: var(--neu-soft); border-radius: 3px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+  .held-mark { font-family: var(--font-mono); font-size: 10px; color: var(--accent); font-weight: 600; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  footer .rubric { max-width: 62ch; }
+  footer code { font-family: var(--font-mono); background: var(--neu-soft); padding: 1px 5px; border-radius: 3px; }
+
+  @media (max-width: 620px) {
+    .masthead { flex-direction: column; align-items: flex-start; }
+    .masthead-meta { text-align: left; }
+    .okr { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Daily Equity Research Committee</p>
+      <h1>Alpha Ledger</h1>
+    </div>
+    <div class="masthead-meta">
+      <div class="date" id="mh-date">—</div>
+      <div id="mh-universe">—</div>
+    </div>
+  </header>
+  <p class="disclaimer">Research/education tool, not investment advice. Every score is computed in code from analyst-desk signals — technical, fundamental, sentiment, macro, and forecast — not guessed by a model. No system can guarantee outperformance.</p>
+
+  <section id="okr-section">
+    <div class="section-head">
+      <h2>Basket alpha vs. SPY</h2>
+      <span class="section-note" id="okr-note">2&ndash;3 month holding horizon</span>
+    </div>
+    <div class="okr">
+      <div class="okr-figure">
+        <p class="label">Basket average</p>
+        <div class="okr-number" id="okr-number">—</div>
+        <p class="okr-sub">Stretch target: <strong id="okr-target-text">+10&ndash;15pp</strong> or better over each position's hold.</p>
+      </div>
+      <div class="gauge-block">
+        <div class="gauge-labels">
+          <span id="gauge-min-label">&minus;20pp</span>
+          <span>0</span>
+          <span id="gauge-max-label">+20pp</span>
+        </div>
+        <div class="gauge" id="gauge">
+          <div class="gauge-track"><div class="gauge-fill" id="gauge-fill"></div></div>
+          <div class="gauge-target-band" id="gauge-target-band"></div>
+          <div class="gauge-zero" style="left:50%"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="basket-section">
+    <div class="section-head">
+      <h2>Standing basket</h2>
+      <span class="section-note" id="basket-count">—</span>
+    </div>
+    <div class="basket-grid" id="basket-grid"></div>
+  </section>
+
+  <section id="activity-section">
+    <div class="section-head"><h2>Today's activity</h2></div>
+    <div class="activity" id="activity-box"></div>
+  </section>
+
+  <section id="cio-section">
+    <div class="section-head"><h2>Portfolio Manager decision log</h2></div>
+    <div class="steps" id="steps-list"></div>
+  </section>
+
+  <section id="candidates-section">
+    <div class="section-head">
+      <h2>Universe ranking</h2>
+      <span class="section-note" id="candidates-note">top candidates by composite score</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Symbol</th><th>Sector</th><th>Signal</th>
+            <th style="text-align:right">Score</th><th style="text-align:right">Rel. strength (10d vs SPY)</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="candidates-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <div class="rubric">Eligibility: NYSE / AMEX / NASDAQ&ndash;listed stocks, ADRs, or ETFs only &middot; no open-end mutual funds &middot; no raw index tickers &middot; price &gt; <code>$5.00</code> &middot; market cap &gt; <code>$2B</code> (stocks) or AUM &gt; <code>$500M</code> (ETFs).</div>
+    <div id="footer-generated">—</div>
+  </footer>
+
+</div>
+
+<script>
+  const DATA = __DATA_PLACEHOLDER__;
+
+  function fmtPct(v, withSign) {
+    const s = withSign !== false ? (v >= 0 ? "+" : "") : "";
+    return s + v.toFixed(2) + "pp";
+  }
+  function fmtMoney(v) {
+    return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function toneClass(v) {
+    return v > 0.001 ? "pos" : (v < -0.001 ? "neg" : "neu");
+  }
+  function fmtDate(iso) {
+    const d = new Date(iso + "T00:00:00Z");
+    return d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+  }
+
+  document.getElementById("mh-date").textContent = fmtDate(DATA.runDate);
+  document.getElementById("mh-universe").textContent =
+    DATA.universeSize + " names screened · " + DATA.screenedOutCount + " excluded on eligibility";
+  document.getElementById("footer-generated").textContent = "Generated " + fmtDate(DATA.runDate) + " from the committee's live GitHub Actions run.";
+
+  // OKR hero
+  const okrEl = document.getElementById("okr-number");
+  okrEl.textContent = fmtPct(DATA.avgAlphaPct);
+  okrEl.classList.add(DATA.avgAlphaPct >= 0 ? "pos" : "neg");
+  document.getElementById("okr-target-text").textContent =
+    "+" + DATA.targetLow.toFixed(0) + "–" + DATA.targetHigh.toFixed(0) + "pp";
+
+  // Gauge scale auto-fits to whichever is larger: the target band, or how
+  // far today's alpha actually sits from zero — so a tiny early-days alpha
+  // is still legible instead of vanishing next to a 10-15pp stretch band,
+  // and a basket that's already deep into the band doesn't get clipped.
+  const scaleMax = Math.max(DATA.targetHigh * 1.3, Math.abs(DATA.avgAlphaPct) * 1.3, 5);
+  document.getElementById("gauge-min-label").textContent = "−" + scaleMax.toFixed(0) + "pp";
+  document.getElementById("gauge-max-label").textContent = "+" + scaleMax.toFixed(0) + "pp";
+
+  const toPct = v => (Math.max(-scaleMax, Math.min(scaleMax, v)) / scaleMax) * 50; // -50%..+50%
+
+  const band = document.getElementById("gauge-target-band");
+  const bandLeft = 50 + toPct(DATA.targetLow);
+  const bandRight = 50 + toPct(DATA.targetHigh);
+  band.style.left = bandLeft + "%";
+  band.style.width = (bandRight - bandLeft) + "%";
+
+  const gaugeFill = document.getElementById("gauge-fill");
+  const pct = toPct(DATA.avgAlphaPct);
+  if (pct >= 0) {
+    gaugeFill.style.left = "50%";
+    gaugeFill.style.width = pct + "%";
+    gaugeFill.classList.add("pos");
+  } else {
+    gaugeFill.style.left = (50 + pct) + "%";
+    gaugeFill.style.width = Math.abs(pct) + "%";
+    gaugeFill.classList.add("neg");
+  }
+
+  // Basket cards
+  const sbBySymbol = {};
+  DATA.scoreboard.forEach(r => sbBySymbol[r.symbol] = r);
+  const basketGrid = document.getElementById("basket-grid");
+  document.getElementById("basket-count").textContent = DATA.basket.length + " open position" + (DATA.basket.length === 1 ? "" : "s");
+  if (DATA.basket.length === 0) {
+    basketGrid.innerHTML = '<p style="color:var(--muted);font-size:13px;">No open positions yet.</p>';
+  }
+  DATA.basket.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "position-card";
+    const tone = toneClass(p.alphaPct);
+    card.innerHTML = `
+      <div class="position-top">
+        <span class="ticker">${p.symbol}</span>
+        <span class="chip sector">${p.sector}</span>
+      </div>
+      <div class="price-row"><span>Entry ${p.entryDate}</span><span class="val">${fmtMoney(p.entryPrice)}</span></div>
+      <div class="price-row"><span>Current</span><span class="val">${fmtMoney(p.currentPrice)} <span style="color:var(--${tone === 'neu' ? 'muted' : tone})">(${p.returnPct >= 0 ? '+' : ''}${p.returnPct.toFixed(2)}%)</span></span></div>
+      <div class="alpha-row">
+        <span class="alpha-label">Alpha vs SPY</span>
+        <span class="alpha-val chip ${tone}" style="font-size:13px;">${fmtPct(p.alphaPct)}</span>
+      </div>
+      <div class="thesis">${p.thesis}</div>
+    `;
+    basketGrid.appendChild(card);
+  });
+
+  // Today's activity
+  const activityBox = document.getElementById("activity-box");
+  if (DATA.entriesToday.length === 0 && DATA.exitsToday.length === 0) {
+    activityBox.innerHTML = `<strong>Basket held unchanged.</strong> ${DATA.cioSummary}`;
+  } else {
+    let html = "";
+    if (DATA.entriesToday.length) {
+      html += `<div><strong>New entries:</strong> ${DATA.entriesToday.join(", ")}</div>`;
+    }
+    if (DATA.exitsToday.length) {
+      html += `<ul class="activity-list">` + DATA.exitsToday.map(e => `<li><strong>${e.symbol}</strong> closed — ${e.reason}</li>`).join("") + `</ul>`;
+    }
+    activityBox.innerHTML = html;
+  }
+
+  // CIO steps
+  const stepsList = document.getElementById("steps-list");
+  DATA.steps.forEach((s, i) => {
+    const m = s.match(/^Step (\d+) \(([^)]+)\): (.*)$/s);
+    const num = m ? m[1] : (i + 1);
+    const title = m ? m[2] : "";
+    const rest = m ? m[3] : s;
+    const row = document.createElement("div");
+    row.className = "step";
+    row.innerHTML = `<div class="step-num">${num}</div><div class="step-text"><b>${title}.</b> ${rest}</div>`;
+    stepsList.appendChild(row);
+  });
+
+  // Candidate table
+  const tbody = document.getElementById("candidates-body");
+  document.getElementById("candidates-note").textContent =
+    "top " + DATA.candidates.length + " of " + DATA.universeSize + " by composite score";
+  const maxScore = Math.max(...DATA.candidates.map(c => Math.abs(c.score)), 1);
+  DATA.candidates.forEach((c, i) => {
+    const tr = document.createElement("tr");
+    if (c.held) tr.className = "held";
+    const signalTone = c.signal === "bullish" ? "pos" : (c.signal === "bearish" ? "neg" : "neu");
+    const barWidth = Math.max(4, (Math.abs(c.score) / maxScore) * 100);
+    const rel = c.relStrength === null ? "—" : (c.relStrength >= 0 ? "+" : "") + c.relStrength.toFixed(1) + "%";
+    tr.innerHTML = `
+      <td class="rank">${i + 1}</td>
+      <td class="tk">${c.symbol}</td>
+      <td class="sector-cell">${c.sector}</td>
+      <td><span class="chip ${signalTone}">${c.signal}</span></td>
+      <td class="num">
+        <div class="score-bar-wrap" style="justify-content:flex-end;">
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${barWidth}%"></div></div>
+          <span>${c.score.toFixed(2)}</span>
+        </div>
+      </td>
+      <td class="num">${rel}</td>
+      <td>${c.held ? '<span class="held-mark">HELD</span>' : ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+</script>

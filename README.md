@@ -13,7 +13,7 @@ of the two agent systems in this repo: a daily-run committee
 Portfolio Manager (CIO) agent, that screens a large/mid-cap US stock and
 broad-index-ETF universe and maintains a standing **2-5 name shortlist**
 for a **2-3 month hold**, tracked against SPY toward an explicit
-**beat-the-benchmark-by-5pp** OKR. `.github/workflows/daily_research.yml`
+**beat-the-benchmark-by-10-15pp** OKR. `.github/workflows/daily_research.yml`
 runs it every weekday and commits the report back to this branch — see
 that README for the chain-of-thought ranking logic, the eligibility
 rubric, and how the OKR scoreboard is tracked day over day.
