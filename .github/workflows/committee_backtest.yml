@@ -19,6 +19,12 @@ on:
       step_days:
         description: "Trading days between trial entry dates (blank = non-overlapping, = hold_days)"
         default: ""
+      min_picks:
+        description: "Minimum names per trial basket (mandate floor is 2)"
+        default: "2"
+      max_picks:
+        description: "Maximum names per trial basket (mandate ceiling is 5; lower = more concentrated)"
+        default: "5"
 
 permissions:
   contents: write
@@ -46,6 +52,8 @@ jobs:
           python -m trading_agent.cli committee-backtest \
             --period "${{ inputs.period }}" \
             --hold-days "${{ inputs.hold_days }}" \
+            --min-picks "${{ inputs.min_picks }}" \
+            --max-picks "${{ inputs.max_picks }}" \
             $STEP_ARG \
             --out "research_team/backtest/$(date -u +%Y-%m-%dT%H%MZ).md"
 
