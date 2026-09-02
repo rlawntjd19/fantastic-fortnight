@@ -15,11 +15,15 @@ name: Equity research committee
 on:
   schedule:
     # All times US/Eastern during EDT (this window is entirely before the
-    # early-November DST change), spread across the NYSE/NASDAQ session:
+    # early-November DST change), spread across the NYSE/NASDAQ session.
+    # GitHub's own docs flag the top of the hour (minute :00, and to a
+    # lesser extent :30) as the highest-load, most delay/drop-prone slot
+    # for scheduled workflows — avoided below on every entry, not just
+    # picked for a round-sounding trading time.
     - cron: "35 13 * * 1-5"  # 9:35am ET — just after the open
-    - cron: "0 15 * * 1-5"   # 11:00am ET — mid-morning
-    - cron: "30 16 * * 1-5"  # 12:30pm ET — midday
-    - cron: "0 18 * * 1-5"   # 2:00pm ET — afternoon
+    - cron: "7 15 * * 1-5"   # 11:07am ET — mid-morning
+    - cron: "38 16 * * 1-5"  # 12:38pm ET — midday
+    - cron: "12 18 * * 1-5"  # 2:12pm ET — afternoon
     - cron: "45 19 * * 1-5"  # 3:45pm ET — just before the close
   workflow_dispatch: {}
 
