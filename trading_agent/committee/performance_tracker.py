@@ -35,7 +35,7 @@ PORTFOLIO_CAPITAL_USD = float(os.environ.get("TRADING_AGENT_COMMITTEE_CAPITAL_US
 # bearish (it would have been closed), but can be only mildly bullish or
 # neutral — floor it so a soft-conviction name still gets a small stake
 # instead of being sized to ~zero.
-_CONVICTION_FLOOR = 0.10
+CONVICTION_FLOOR = 0.10
 
 # Annualized-volatility floor/fallback, as a fraction (0.05 = 5%/yr). Floors
 # guard against a near-zero realized-vol name (thin data, holiday-shortened
@@ -43,8 +43,27 @@ _CONVICTION_FLOOR = 0.10
 # scoreboard has no volatility estimate for at all (e.g. this run's price
 # fetch failed for it) with a typical-large-cap-equity figure rather than
 # guessing zero risk.
-_VOLATILITY_FLOOR_PCT = 0.05
-_DEFAULT_VOLATILITY_PCT = 0.25
+VOLATILITY_FLOOR_PCT = 0.05
+DEFAULT_VOLATILITY_PCT = 0.25
+
+
+def compute_weights(
+    symbols: list[str],
+    conviction_by_symbol: dict[str, float],
+    volatility_by_symbol: dict[str, float],
+) -> dict[str, float]:
+    """weight_i = (conviction_i / volatility_i) / Σ (conviction_j / volatility_j)
+    across `symbols`, normalized to sum to 1 — the one place this formula
+    is defined, shared by `build_scoreboard` (live) and
+    `committee.backtest` (historical), so the two can never quietly drift
+    apart on how a basket is actually sized."""
+    raw_weights: dict[str, float] = {}
+    for symbol in symbols:
+        conviction = max(conviction_by_symbol.get(symbol, CONVICTION_FLOOR), CONVICTION_FLOOR)
+        vol = max(volatility_by_symbol.get(symbol, DEFAULT_VOLATILITY_PCT), VOLATILITY_FLOOR_PCT)
+        raw_weights[symbol] = conviction / vol
+    total_raw = sum(raw_weights.values()) or 1.0
+    return {symbol: raw / total_raw for symbol, raw in raw_weights.items()}
 
 
 def load_state(path: str = DEFAULT_STATE_PATH) -> PortfolioState:
@@ -98,18 +117,12 @@ def build_scoreboard(
     conviction_by_symbol = conviction_by_symbol or {}
     volatility_by_symbol = volatility_by_symbol or {}
     priced_open = [p for p in state.open_positions if current_prices.get(p.symbol) is not None]
-
-    raw_weights: dict[str, float] = {}
-    for p in priced_open:
-        conviction = max(conviction_by_symbol.get(p.symbol, _CONVICTION_FLOOR), _CONVICTION_FLOOR)
-        vol = max(volatility_by_symbol.get(p.symbol, _DEFAULT_VOLATILITY_PCT), _VOLATILITY_FLOOR_PCT)
-        raw_weights[p.symbol] = conviction / vol
-    total_raw = sum(raw_weights.values()) or 1.0
+    weights = compute_weights([p.symbol for p in priced_open], conviction_by_symbol, volatility_by_symbol)
 
     rows = []
     for p in priced_open:
         current = current_prices[p.symbol]
-        weight = raw_weights[p.symbol] / total_raw
+        weight = weights[p.symbol]
         capital_for_position = PORTFOLIO_CAPITAL_USD * weight
         shares = int(capital_for_position // current)
         allocated_value = shares * current

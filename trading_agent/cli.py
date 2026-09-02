@@ -17,12 +17,15 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import os
 import sys
 import time
 
-from trading_agent.committee.daily_report import run_daily_cycle
+from trading_agent.committee import backtest as committee_backtest
+from trading_agent.committee.daily_report import OKR_TARGET_LOW_PP, run_daily_cycle
 from trading_agent.committee.performance_tracker import DEFAULT_STATE_PATH, load_state, save_state
 from trading_agent.committee.render import write_report
+from trading_agent.committee.universe import UNIVERSE
 from trading_agent.config import DEFAULT_CONFIG
 from trading_agent.dashboard import DashboardState, start_dashboard_server
 from trading_agent.data.factory import build_macro_provider, build_market_data_provider
@@ -386,6 +389,51 @@ def _run_daily_picks(args) -> int:
     return 0
 
 
+def _run_committee_backtest(args) -> int:
+    config = _build_config(args)
+    llm = build_llm_client(config)
+    forecaster = build_price_forecaster(config)
+
+    print(f"Fetching {args.period} of real history for {len(UNIVERSE)} universe symbols + macro series...")
+    data = committee_backtest.fetch_backtest_data(period=args.period)
+
+    step_bars = args.step_days
+    print(
+        f"Running backtest: hold {args.hold_days} trading days, "
+        f"step {step_bars or args.hold_days} ({'non-overlapping' if not step_bars or step_bars >= args.hold_days else 'overlapping'})..."
+    )
+    report = committee_backtest.run_backtest(
+        data,
+        llm,
+        forecaster,
+        hold_bars=args.hold_days,
+        step_bars=step_bars,
+        min_picks=args.min_picks,
+        max_picks=args.max_picks,
+    )
+    summary = committee_backtest.summarize(report)
+
+    markdown = committee_backtest.to_markdown(report, summary)
+    out_dir = os.path.dirname(args.out) or "."
+    os.makedirs(out_dir, exist_ok=True)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write(markdown)
+
+    print(f"\n{summary['n_trials']} trial(s).")
+    if summary["n_trials"]:
+        print(
+            f"Mean alpha: {summary['mean_alpha_pct'] * 100:+.2f}pp | "
+            f"Median: {summary['median_alpha_pct'] * 100:+.2f}pp | "
+            f"Stdev: {summary['stdev_alpha_pct'] * 100:.2f}pp"
+        )
+        print(
+            f"Win rate (alpha>0): {summary['win_rate'] * 100:.0f}% | "
+            f"Hit +{OKR_TARGET_LOW_PP:.0f}pp target rate: {summary['hit_target_rate'] * 100:.0f}%"
+        )
+    print(f"Wrote {args.out}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="trading_agent")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -466,6 +514,33 @@ def main(argv: list[str] | None = None) -> int:
         "--date", default=None, help="Override the run date (YYYY-MM-DD); defaults to today."
     )
 
+    committee_backtest_cmd = sub.add_parser(
+        "committee-backtest",
+        help="Backtest the committee's actual selection + conviction/volatility sizing logic across "
+        "real historical data — evidence for whether the strategy's signals carry forward-return "
+        "information, instead of trusting the live design at face value. Always uses real Yahoo "
+        "Finance data; there is no offline/simulated mode for this command.",
+    )
+    committee_backtest_cmd.add_argument(
+        "--period", default="2y", help="yfinance period string for historical data (e.g. 1y, 2y, 5y)."
+    )
+    committee_backtest_cmd.add_argument(
+        "--hold-days", type=int, default=63, help="Trading days to hold each trial's picks (63 ~= 3 months)."
+    )
+    committee_backtest_cmd.add_argument(
+        "--step-days",
+        type=int,
+        default=None,
+        help="Trading days between trial entry dates; defaults to --hold-days (non-overlapping, "
+        "close to independent trials). A smaller value gives more, but correlated, trials.",
+    )
+    committee_backtest_cmd.add_argument("--min-picks", type=int, default=2)
+    committee_backtest_cmd.add_argument("--max-picks", type=int, default=5)
+    committee_backtest_cmd.add_argument(
+        "--kronos", action="store_true", help="Use the Kronos price-forecasting analyst if installed."
+    )
+    committee_backtest_cmd.add_argument("--out", default="research_team/backtest/latest.md")
+
     args = parser.parse_args(argv)
 
     if args.command == "signal":
@@ -476,6 +551,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_backtest(args)
     if args.command == "daily-picks":
         return _run_daily_picks(args)
+    if args.command == "committee-backtest":
+        return _run_committee_backtest(args)
 
     return 1
 

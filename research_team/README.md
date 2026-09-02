@@ -216,11 +216,47 @@ stub, same deterministic scoring); add that secret in the repo's Settings
 from the Actions tab (`workflow_dispatch`) instead of waiting for the
 next scheduled run.
 
+## Backtesting: evidence, not priors
+
+The live design's numbers are all it can offer until it has run for
+months — `trading_agent/committee/backtest.py` instead replays the
+*actual* selection (`assess_symbol`, `PortfolioManager.select`) and
+conviction/volatility sizing (`performance_tracker.compute_weights`) logic
+across real historical data: pick an entry date, screen the universe and
+build a basket exactly as a live run would, hold it unrebalanced for a
+fixed horizon (default 63 trading days, ~3 months), mark it to market
+against SPY over that identical window, repeat across many historical
+dates, and report the resulting alpha *distribution* — mean, median,
+stdev, win rate, and the rate of actually hitting the +10-15pp OKR band —
+not a single anecdote.
+
+Real limitations, not hidden: this data source only exposes *current*
+fundamentals/news, not what was known on a past date, so the fundamental
+and sentiment desks correctly report neutral/no-signal for every
+historical trial (the same graceful degradation they already use for any
+missing live field) — backtested composite scores reflect technical +
+macro + forecast only. Full methodology and every other simplification
+is spelled out in `backtest.py`'s module docstring and reproduced at the
+bottom of every report it generates.
+
+```bash
+# Always real data — there is no offline/simulated mode for this command:
+pip install -r requirements-live.txt
+python -m trading_agent.cli committee-backtest --period 2y --hold-days 63
+```
+
+`.github/workflows/committee_backtest.yml` runs this on demand
+(`workflow_dispatch`, not part of the 5x/day live cadence) since real
+multi-year historical data needs a real network connection; trigger it
+from the Actions tab and the report lands in `research_team/backtest/`.
+
 ## Tests
 
 ```bash
-pytest tests/test_committee.py
+pytest tests/test_committee.py tests/test_committee_backtest.py
 ```
 
-Fully offline (`SimulatedFeed` + `DummyLLMClient` + `StaticMacroProvider` +
-`HeuristicForecaster`), same as the rest of this repo's test suite.
+Fully offline (`SimulatedFeed`/synthetic price series + `DummyLLMClient` +
+`StaticMacroProvider` + `HeuristicForecaster`), same as the rest of this
+repo's test suite — `backtest.py`'s `fetch_backtest_data()` is the only
+function here that needs real network, and it isn't exercised by tests.

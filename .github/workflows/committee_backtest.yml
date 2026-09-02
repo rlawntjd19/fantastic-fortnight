@@ -1,0 +1,62 @@
+name: Committee backtest
+
+# Manual only — this is empirical validation of the committee's selection +
+# sizing logic, not part of the 5x/day live reporting cadence. Always uses
+# real historical Yahoo Finance data (trading_agent/committee/backtest.py
+# has no offline/simulated mode); see that module's docstring for the
+# methodology notes and known simplifications (no point-in-time
+# fundamentals/news, fixed-horizon hold) before trusting any number in the
+# output.
+on:
+  workflow_dispatch:
+    inputs:
+      period:
+        description: "History window (yfinance period string, e.g. 1y, 2y, 5y)"
+        default: "2y"
+      hold_days:
+        description: "Trading days to hold each trial's picks (63 ~= 3 months)"
+        default: "63"
+      step_days:
+        description: "Trading days between trial entry dates (blank = non-overlapping, = hold_days)"
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt -r requirements-live.txt
+
+      - name: Run the committee backtest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          STEP_ARG=""
+          if [ -n "${{ inputs.step_days }}" ]; then
+            STEP_ARG="--step-days ${{ inputs.step_days }}"
+          fi
+          python -m trading_agent.cli committee-backtest \
+            --period "${{ inputs.period }}" \
+            --hold-days "${{ inputs.hold_days }}" \
+            $STEP_ARG \
+            --out "research_team/backtest/$(date -u +%Y-%m-%dT%H%MZ).md"
+
+      - name: Commit and push the backtest report
+        run: |
+          git config user.name "daily-research-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add research_team/backtest/
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Committee backtest: $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
