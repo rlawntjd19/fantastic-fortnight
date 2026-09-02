@@ -22,9 +22,9 @@ def _run(run_date=dt.date(2026, 8, 31), state=None, seed=7):
     )
 
 
-def test_daily_cycle_produces_between_two_and_five_open_positions():
+def test_daily_cycle_produces_the_fixed_three_name_basket():
     report = _run()
-    assert 2 <= len(report.open_positions) <= 5
+    assert len(report.open_positions) == 3
     assert len(report.entries) == len(report.open_positions)
 
 
@@ -35,8 +35,8 @@ def test_daily_cycle_is_idempotent_on_a_full_basket():
 
     second = _run(run_date=dt.date(2026, 9, 1), state=state)
     # A full basket with no thesis break should see no new entries.
-    assert second.entries == [] or len(state.open_positions) <= 5
-    assert len(state.open_positions) <= 5
+    assert second.entries == [] or len(state.open_positions) <= 3
+    assert len(state.open_positions) <= 3
 
 
 def test_window_closed_holds_basket_without_new_screening():

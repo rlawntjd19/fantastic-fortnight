@@ -1,7 +1,8 @@
 """Regression coverage for performance_tracker.build_scoreboard's position
 sizing: capital is weighted by conviction / realized volatility across
-whichever positions are actually open (2-5, per the mandate) — not a fixed
-1/5 per slot, and not a flat equal split within the basket either. A
+whichever positions are actually open (the live committee runs a fixed
+3-name basket; build_scoreboard itself works for any basket size) — not a
+fixed 1/N per slot, and not a flat equal split within the basket either. A
 higher-conviction and/or lower-volatility name should get more dollars
 than a lower-conviction and/or higher-volatility one; agents' analysis
 should actually move the sizing, not just which names get picked."""

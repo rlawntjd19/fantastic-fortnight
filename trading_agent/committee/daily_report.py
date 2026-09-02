@@ -61,6 +61,20 @@ MAX_HOLD_DAYS = 95
 OKR_TARGET_LOW_PP = 10.0
 OKR_TARGET_HIGH_PP = 15.0
 
+# Live basket size. The original mandate allowed a flexible 2-5 name basket
+# ("up to 5, not necessarily 5"); `committee.backtest` across 19 real
+# non-overlapping 3-month windows (research_team/backtest/) found a fixed
+# 3-name basket dominates that flexible baseline on a risk-adjusted basis
+# (mean alpha +5.39pp vs +2.08pp, stdev 8.75pp vs 7.95pp, worst trial
+# -9.10pp vs -10.20pp) while capturing most of a maximally concentrated
+# 2-name basket's return lift (+5.74pp mean) without its tail risk (worst
+# trial -25.08pp). `PortfolioManager` itself still defaults to 2-5 for other
+# callers (e.g. testing other basket-size variants); this is what the live
+# committee actually runs. Revisit if a longer/denser backtest sample
+# changes the picture.
+LIVE_MIN_PICKS = 3
+LIVE_MAX_PICKS = 3
+
 _REL_STRENGTH_FULL_SCALE = 0.10  # a 10pp spread vs SPY maps to a full +-1 score contribution
 
 
@@ -139,7 +153,7 @@ def run_daily_cycle(
         "forecast": ForecastAnalyst(llm, forecaster),
     }
     research_manager = ResearchManager(llm)
-    cio = PortfolioManager(llm)
+    cio = PortfolioManager(llm, min_picks=LIVE_MIN_PICKS, max_picks=LIVE_MAX_PICKS)
 
     screened_out: list[str] = []
 
@@ -214,7 +228,7 @@ def run_daily_cycle(
             current_prices.setdefault(entry.symbol, snapshot.last_price)
             candidates.append(assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager))
 
-    slots_open = max(0, cio._max_picks - len(state.open_positions))
+    slots_open = max(0, LIVE_MAX_PICKS - len(state.open_positions))
     new_picks, cio_rationale = cio.select(candidates, held_symbols, slots_open) if window_open else (
         [],
         "Research window closed (past the everyday-until-2026-09-07 mandate) — no new candidates were screened; "

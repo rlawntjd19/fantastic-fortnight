@@ -1,12 +1,21 @@
 # Daily equity research committee
 
 A team of AI equity-research-analyst agents that runs every US market
-weekday and maintains a standing shortlist of **2-5 US stocks and/or
+weekday and maintains a standing **fixed 3-name basket of US stocks and/or
 broad-market index ETFs**, sized for a **2-3 month holding horizon**, with
 the explicit (if admittedly very ambitious) OKR of **beating SPY by
 10-15 percentage points** over that horizon. Code lives in
 `trading_agent/committee/`; this file is the design write-up, parallel to
 the main [README.md](../README.md) for the rest of the repo.
+
+The basket size was originally a flexible **2-5 names, not necessarily 5**
+mandate; it moved to a fixed 3 once `committee/backtest.py` (see
+"Backtesting" below) showed 3 dominates that flexible baseline on a
+risk-adjusted basis across 19 real historical windows. `PortfolioManager`
+itself still defaults to 2-5 and takes any `min_picks`/`max_picks` — that's
+what lets the backtest test other basket sizes at all — but
+`committee/daily_report.py`'s `LIVE_MIN_PICKS`/`LIVE_MAX_PICKS` (both 3) is
+what the live committee actually runs.
 
 > Research/education tool. Not investment advice. No system can guarantee
 > outperformance — a 10-15pp-over-SPY OKR is a stretch target to aim the
@@ -33,7 +42,7 @@ else in this project.
 | Macro analyst | `agents.analysts.MacroAnalyst` | 10Y yield, VIX, dollar index |
 | Forecast analyst | `agents.analysts.ForecastAnalyst` | Heuristic (or Kronos, if installed) price-path forecast |
 | Research manager | `agents.researchers.ResearchManager` | Bull/bear debate → one consensus signal per symbol |
-| **Portfolio manager (CIO)** | `committee.portfolio_manager.PortfolioManager` | Ranks every symbol's consensus into the final 2-5 name basket |
+| **Portfolio manager (CIO)** | `committee.portfolio_manager.PortfolioManager` | Ranks every symbol's consensus into the final basket (fixed at 3 names live; configurable for backtesting) |
 
 The first six are reused unchanged from `trading_agent/agents/` — this
 module is a portfolio-level layer on top of the same per-symbol research
@@ -129,12 +138,10 @@ weight_i = (conviction_i / volatility_i) / Σ (conviction_j / volatility_j)
   analyst signal, which was a real gap against basic portfolio theory,
   not a deliberate design choice.
 
-A basket holding 2 high-conviction, low-vol names will end up far more
-concentrated than a 50/50 split; a 5-name basket with mixed conviction
-and risk won't be a flat 20% each either. The mandate's "2-5 names, not
-necessarily 5" still holds at the picking stage (nothing sits idle in an
-unfilled slot the committee chose not to fill) — sizing now compounds
-that with a second, independent signal.
+Within the fixed 3-name basket, two high-conviction, low-vol names still
+won't split 50/50 against the third if their conviction/vol profiles
+differ — sizing is a second, independent signal on top of which 3 names
+get picked at all.
 
 This is a **live snapshot, not a buy-and-hold share count**: weights,
 shares, and dollar amounts are recomputed fresh every run from that
@@ -147,6 +154,22 @@ Every day's report and the dashboard artifact both show the full
 breakdown: symbol, weight, shares, current price, and market value, plus
 totals (capital, invested, % deployed, and the small cash residue from
 whole-share rounding).
+
+## Judging a report before it's trusted
+
+`committee/report_validation.validate_report` checks a built `CommitteeReport`
+against its own numbers before `cli._run_daily_picks` persists anything:
+scoreboard weights sum to ~1.0, each row's `alpha_pct` actually equals
+`position_return_pct - benchmark_return_pct`, `allocated_value` matches
+`shares * current_price`, no symbol is duplicated or both exited-and-open,
+and `okr_summary`'s stated average alpha matches what the scoreboard itself
+computes. A report that fails any check is refused outright — nothing is
+written to `research_team/state/portfolio.json` or the reports directory —
+the same "fail loudly, never persist something wrong" discipline as the
+`--live` no-fake-data guard, just checking internal consistency instead of
+data provenance. `tests/test_report_validation.py` covers each check
+directly; `tests/test_report_validation_guard.py` covers the CLI refusing to
+write on failure.
 
 ## The 9/7 window
 
@@ -253,7 +276,7 @@ from the Actions tab and the report lands in `research_team/backtest/`.
 ## Tests
 
 ```bash
-pytest tests/test_committee.py tests/test_committee_backtest.py
+pytest tests/test_committee.py tests/test_committee_backtest.py tests/test_report_validation.py tests/test_report_validation_guard.py
 ```
 
 Fully offline (`SimulatedFeed`/synthetic price series + `DummyLLMClient` +
