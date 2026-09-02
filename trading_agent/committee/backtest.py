@@ -174,6 +174,8 @@ class TrialResult:
 class BacktestReport:
     hold_bars: int
     step_bars: int
+    min_picks: int = 2
+    max_picks: int = 5
     trials: list[TrialResult] = field(default_factory=list)
 
 
@@ -354,7 +356,9 @@ def run_backtest(
             trials.append(trial)
         i += step_bars
 
-    return BacktestReport(hold_bars=hold_bars, step_bars=step_bars, trials=trials)
+    return BacktestReport(
+        hold_bars=hold_bars, step_bars=step_bars, min_picks=min_picks, max_picks=max_picks, trials=trials
+    )
 
 
 def summarize(report: BacktestReport) -> dict:
@@ -401,7 +405,8 @@ def to_markdown(report: BacktestReport, summary: dict) -> str:
     lines.append(
         f"Hold horizon: **{report.hold_bars} trading days** (~{report.hold_bars / 21:.1f} months) · "
         f"Trial spacing: **{report.step_bars} trading days** "
-        f"({'non-overlapping, independent draws' if report.step_bars >= report.hold_bars else 'overlapping — trials share price history, treat as correlated'})"
+        f"({'non-overlapping, independent draws' if report.step_bars >= report.hold_bars else 'overlapping — trials share price history, treat as correlated'}) · "
+        f"Basket size: **{report.min_picks}-{report.max_picks} names**"
     )
     lines.append("")
 
