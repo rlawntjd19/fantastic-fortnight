@@ -210,6 +210,38 @@
     white-space: nowrap;
   }
 
+  /* ---------- Portfolio allocation ---------- */
+  .allocation-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .stat-tile {
+    background: var(--panel);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-tile .label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .stat-tile .value {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
   /* ---------- Basket cards ---------- */
   .basket-grid {
     display: grid;
@@ -395,6 +427,25 @@
     <div class="basket-grid" id="basket-grid"></div>
   </section>
 
+  <section id="allocation-section">
+    <div class="section-head">
+      <h2>Portfolio allocation</h2>
+      <span class="section-note" id="allocation-note">illustrative paper capital, not investment advice</span>
+    </div>
+    <div class="allocation-stats" id="allocation-stats"></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th><th style="text-align:right">Weight</th><th style="text-align:right">Shares</th>
+            <th style="text-align:right">Price</th><th style="text-align:right">Market Value</th>
+          </tr>
+        </thead>
+        <tbody id="allocation-body"></tbody>
+      </table>
+    </div>
+  </section>
+
   <section id="activity-section">
     <div class="section-head"><h2>Today's activity</h2></div>
     <div class="activity" id="activity-box"></div>
@@ -500,6 +551,10 @@
     const card = document.createElement("div");
     card.className = "position-card";
     const tone = toneClass(p.alphaPct);
+    const sb = sbBySymbol[p.symbol];
+    const allocationLine = sb
+      ? `<div class="price-row"><span>${sb.shares.toLocaleString()} sh &middot; ${sb.weightPct.toFixed(1)}% weight</span><span class="val">${fmtMoney(sb.allocatedValue)}</span></div>`
+      : "";
     card.innerHTML = `
       <div class="position-top">
         <span class="ticker">${p.symbol}</span>
@@ -507,6 +562,7 @@
       </div>
       <div class="price-row"><span>Entry ${p.entryDate}</span><span class="val">${fmtMoney(p.entryPrice)}</span></div>
       <div class="price-row"><span>Current</span><span class="val">${fmtMoney(p.currentPrice)} <span style="color:var(--${tone === 'neu' ? 'muted' : tone})">(${p.returnPct >= 0 ? '+' : ''}${p.returnPct.toFixed(2)}%)</span></span></div>
+      ${allocationLine}
       <div class="alpha-row">
         <span class="alpha-label">Alpha vs SPY</span>
         <span class="alpha-val chip ${tone}" style="font-size:13px;">${fmtPct(p.alphaPct)}</span>
@@ -514,6 +570,33 @@
       <div class="thesis">${p.thesis}</div>
     `;
     basketGrid.appendChild(card);
+  });
+
+  // Portfolio allocation
+  const allocationStats = document.getElementById("allocation-stats");
+  const allocationBody = document.getElementById("allocation-body");
+  const totalInvested = DATA.totalInvested || 0;
+  const cashUninvested = (DATA.portfolioCapital || 0) - totalInvested;
+  const deployedPct = DATA.portfolioCapital ? (totalInvested / DATA.portfolioCapital) * 100 : 0;
+  allocationStats.innerHTML = `
+    <div class="stat-tile"><span class="label">Paper Capital</span><span class="value">${fmtMoney(DATA.portfolioCapital || 0)}</span></div>
+    <div class="stat-tile"><span class="label">Invested</span><span class="value">${fmtMoney(totalInvested)}</span></div>
+    <div class="stat-tile"><span class="label">Deployed</span><span class="value">${deployedPct.toFixed(1)}%</span></div>
+    <div class="stat-tile"><span class="label">Cash (rounding)</span><span class="value">${fmtMoney(cashUninvested)}</span></div>
+  `;
+  if (DATA.scoreboard.length === 0) {
+    allocationBody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);">No open positions yet.</td></tr>';
+  }
+  DATA.scoreboard.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="tk">${r.symbol}</td>
+      <td class="num">${r.weightPct.toFixed(1)}%</td>
+      <td class="num">${r.shares.toLocaleString()}</td>
+      <td class="num">${fmtMoney(r.currentPrice)}</td>
+      <td class="num">${fmtMoney(r.allocatedValue)}</td>
+    `;
+    allocationBody.appendChild(tr);
   });
 
   // Today's activity

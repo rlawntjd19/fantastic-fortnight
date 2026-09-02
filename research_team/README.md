@@ -98,6 +98,30 @@ That scoreboard is the first table in every day's report — it's the
 running, checkable answer to "are we actually beating SPY by 10-15pp," not
 a one-time backtest number.
 
+## Portfolio allocation: how much is invested in what
+
+`PORTFOLIO_CAPITAL_USD` (`committee/performance_tracker.py`, $100,000 by
+default — illustrative paper capital, no real money anywhere in this
+codebase; override with `TRADING_AGENT_COMMITTEE_CAPITAL_USD`) is split
+**equally across whichever positions are actually open right now** —
+`capital_per_position = PORTFOLIO_CAPITAL_USD / len(open_positions)` — not
+a fixed 1/5 per slot. A basket holding 2 high-conviction names puts 50%
+of capital into each; a full 5-name basket puts 20% into each. The
+mandate's "2-5 names, not necessarily 5" is enforced here, not just at
+the picking stage: nothing sits idle in an unfilled slot just because the
+committee chose not to fill it.
+
+This is a **live snapshot, not a buy-and-hold share count**: shares and
+dollar amounts are recomputed fresh every run from that run's current
+price (`shares = floor(capital_per_position / current_price)`), so the
+allocation table always reflects "if fully deployed today," independent
+of the alpha/return figures above (which correctly track performance
+since each position's actual entry price, unaffected by this). Every
+day's report and the dashboard artifact both show this breakdown:
+symbol, weight, shares, current price, and market value, plus totals
+(capital, invested, % deployed, and the small cash residue from
+whole-share rounding).
+
 ## The 9/7 window
 
 `committee/daily_report.RESEARCH_WINDOW_END = 2026-09-07`. On or before

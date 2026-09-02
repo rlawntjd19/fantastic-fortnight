@@ -7,6 +7,7 @@ import dataclasses
 import json
 import os
 
+from trading_agent.committee.performance_tracker import PORTFOLIO_CAPITAL_USD
 from trading_agent.committee.schemas import CommitteeReport
 
 
@@ -33,6 +34,28 @@ def to_markdown(report: CommitteeReport) -> str:
                 f"{row['position_return_pct'] * 100:+.2f}% | {row['benchmark_return_pct'] * 100:+.2f}% | "
                 f"{row['alpha_pct'] * 100:+.2f}pp |"
             )
+        lines.append("")
+
+    if report.scoreboard:
+        total_invested = sum(row["allocated_value"] for row in report.scoreboard)
+        lines.append(
+            f"## Portfolio allocation (${PORTFOLIO_CAPITAL_USD:,.0f} paper capital, "
+            f"equal-weighted across the {len(report.scoreboard)} name(s) actually held — "
+            "not investment advice, illustrative sizing only)"
+        )
+        lines.append("")
+        lines.append("| Symbol | Weight | Shares | Current Price | Market Value |")
+        lines.append("|---|---:|---:|---:|---:|")
+        for row in report.scoreboard:
+            lines.append(
+                f"| {row['symbol']} | {row['weight_pct'] * 100:.1f}% | {row['shares']:,} | "
+                f"${row['current_price']:.2f} | ${row['allocated_value']:,.2f} |"
+            )
+        lines.append(
+            f"| **Total** | 100.0% | — | — | **${total_invested:,.2f}** "
+            f"({total_invested / PORTFOLIO_CAPITAL_USD * 100:.1f}% deployed, "
+            f"${PORTFOLIO_CAPITAL_USD - total_invested:,.2f} in cash from share rounding) |"
+        )
         lines.append("")
 
     lines.append("## Portfolio Manager (CIO) decision log — chain of thought")
