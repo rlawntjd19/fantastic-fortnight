@@ -41,6 +41,9 @@ _MAX_CANDIDATES_SHOWN = 16
 _OKR_TARGET_LOW_PP = 10.0
 _OKR_TARGET_HIGH_PP = 15.0
 
+# Mirrors trading_agent/committee/performance_tracker.PORTFOLIO_CAPITAL_USD.
+_PORTFOLIO_CAPITAL_USD = 100_000.0
+
 
 def build_payload(report: dict) -> dict:
     scoreboard = report["scoreboard"]
@@ -86,6 +89,20 @@ def build_payload(report: dict) -> dict:
     summary_match = re.search(r"CIO summary: (.*)", report["cio_rationale"], re.S)
     cio_summary = (summary_match.group(1).strip() if summary_match else "").replace("[offline-stub] ", "")
 
+    # weight_pct/shares/allocated_value are absent from reports generated
+    # before the portfolio-allocation feature existed — recompute the same
+    # equal-weight split on the fly for those instead of crashing, so an
+    # older report JSON can still be rendered.
+    capital_per_position = _PORTFOLIO_CAPITAL_USD / len(scoreboard) if scoreboard else 0.0
+
+    def _allocation(r: dict) -> tuple[float, int, float]:
+        if "allocated_value" in r:
+            return r["weight_pct"], r["shares"], r["allocated_value"]
+        shares = int(capital_per_position // r["current_price"])
+        return 1.0 / len(scoreboard), shares, shares * r["current_price"]
+
+    total_invested = sum(_allocation(r)[2] for r in scoreboard)
+
     return {
         "runDate": report["run_date"],
         "universeSize": report["universe_size"],
@@ -100,9 +117,15 @@ def build_payload(report: dict) -> dict:
                 "alphaPct": round(r["alpha_pct"] * 100, 2),
                 "returnPct": round(r["position_return_pct"] * 100, 2),
                 "benchPct": round(r["benchmark_return_pct"] * 100, 2),
+                "currentPrice": round(r["current_price"], 2),
+                "weightPct": round(_allocation(r)[0] * 100, 2),
+                "shares": _allocation(r)[1],
+                "allocatedValue": round(_allocation(r)[2], 2),
             }
             for r in scoreboard
         ],
+        "portfolioCapital": _PORTFOLIO_CAPITAL_USD,
+        "totalInvested": round(total_invested, 2),
         "entriesToday": [e["symbol"] for e in report["entries"]],
         "exitsToday": [{"symbol": e["symbol"], "reason": e.get("exit_reason", "")} for e in report["exits"]],
         "steps": steps,

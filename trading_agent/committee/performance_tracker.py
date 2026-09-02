@@ -19,6 +19,14 @@ DEFAULT_STATE_PATH = os.environ.get(
     "TRADING_AGENT_COMMITTEE_STATE_PATH", "research_team/state/portfolio.json"
 )
 
+# Paper capital the allocation table below is sized against — illustrative
+# only, no real money anywhere in this codebase. Split equally across
+# however many positions are actually open (2-5, per the mandate), not a
+# fixed 1/5 per slot: a basket that holds fewer, higher-conviction names
+# deploys the same capital more heavily into each rather than sitting on
+# uninvested cash for slots the committee chose not to fill.
+PORTFOLIO_CAPITAL_USD = float(os.environ.get("TRADING_AGENT_COMMITTEE_CAPITAL_USD", "100000"))
+
 
 def load_state(path: str = DEFAULT_STATE_PATH) -> PortfolioState:
     if not os.path.exists(path):
@@ -50,11 +58,19 @@ def alpha_pct(entry_price: float, current_price: float, benchmark_entry: float, 
 
 
 def build_scoreboard(state: PortfolioState, current_prices: dict[str, float], spy_current: float) -> list[dict]:
+    priced_open = [p for p in state.open_positions if current_prices.get(p.symbol) is not None]
+    # Equal-weight target allocation of PORTFOLIO_CAPITAL_USD across whichever
+    # positions are actually open right now (see the constant's docstring) —
+    # a live snapshot ("if fully deployed today"), not a buy-and-hold share
+    # count carried from each position's entry date; the alpha/return fields
+    # above are what track true since-entry performance, independent of this.
+    capital_per_position = PORTFOLIO_CAPITAL_USD / len(priced_open) if priced_open else 0.0
+
     rows = []
-    for p in state.open_positions:
-        current = current_prices.get(p.symbol)
-        if current is None:
-            continue
+    for p in priced_open:
+        current = current_prices[p.symbol]
+        shares = int(capital_per_position // current)
+        allocated_value = shares * current
         rows.append(
             {
                 "symbol": p.symbol,
@@ -64,6 +80,9 @@ def build_scoreboard(state: PortfolioState, current_prices: dict[str, float], sp
                 "position_return_pct": current / p.entry_price - 1.0,
                 "benchmark_return_pct": spy_current / p.benchmark_entry_price - 1.0,
                 "alpha_pct": alpha_pct(p.entry_price, current, p.benchmark_entry_price, spy_current),
+                "weight_pct": 1.0 / len(priced_open),
+                "shares": shares,
+                "allocated_value": allocated_value,
             }
         )
     return rows
