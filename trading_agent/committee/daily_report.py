@@ -81,7 +81,7 @@ def _composite_score(reports, debate, relative_strength: float | None) -> float:
     return round(0.6 * desk_component + 0.4 * rel_component, 4)
 
 
-def _assess_symbol(
+def assess_symbol(
     entry,
     snapshot,
     spy_momentum: float | None,
@@ -170,7 +170,7 @@ def run_daily_cycle(
 
         if entry is None:
             continue  # held name fell out of the static universe table; still tracked, just not re-underwritten
-        assessment = _assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager)
+        assessment = assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager)
 
         days_held = (run_date - dt.date.fromisoformat(position.entry_date)).days
         thesis_broke = assessment.debate.consensus_signal == Signal.BEARISH
@@ -212,7 +212,7 @@ def run_daily_cycle(
                 continue
 
             current_prices.setdefault(entry.symbol, snapshot.last_price)
-            candidates.append(_assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager))
+            candidates.append(assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager))
 
     slots_open = max(0, cio._max_picks - len(state.open_positions))
     new_picks, cio_rationale = cio.select(candidates, held_symbols, slots_open) if window_open else (
