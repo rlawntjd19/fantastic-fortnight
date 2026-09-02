@@ -37,7 +37,7 @@ from trading_agent.committee.portfolio_manager import PortfolioManager
 from trading_agent.committee.schemas import CandidateAssessment, CommitteeReport, Position
 from trading_agent.committee.universe import BENCHMARK_SYMBOL, UNIVERSE, screen_ineligible
 from trading_agent.config import Config
-from trading_agent.data.indicators import momentum
+from trading_agent.data.indicators import momentum, volatility as compute_volatility
 from trading_agent.data.macro import MacroDataProvider
 from trading_agent.data.providers import MarketDataProvider
 from trading_agent.forecast.base import PriceForecaster
@@ -112,6 +112,7 @@ def _assess_symbol(
         debate=debate,
         relative_strength_vs_spy=relative_strength,
         composite_score=_composite_score(reports, debate, relative_strength),
+        volatility=compute_volatility(snapshot.closes, 20),
     )
 
 
@@ -154,6 +155,10 @@ def run_daily_cycle(
     exits: list[Position] = []
     held_symbols = {p.symbol for p in state.open_positions}
     current_prices: dict[str, float] = {}
+    # Feeds position sizing below: a name's *current* conviction (composite
+    # score) and realized volatility, captured from the same re-underwriting
+    # this loop already does for the exit decision — not recomputed twice.
+    held_assessments: dict[str, CandidateAssessment] = {}
     for position in list(state.open_positions):
         entry = next((e for e in UNIVERSE if e.symbol == position.symbol), None)
         try:
@@ -186,6 +191,8 @@ def run_daily_cycle(
             state.closed.append(position)
             exits.append(position)
             held_symbols.discard(position.symbol)
+        else:
+            held_assessments[position.symbol] = assessment
 
     # --- screen the universe for new candidates (only while the window is open) ---
     candidates: list[CandidateAssessment] = []
@@ -226,7 +233,26 @@ def run_daily_cycle(
         state.positions.append(position)
         current_prices.setdefault(pick.symbol, pick.entry_price)
 
-    scoreboard = build_scoreboard(state, current_prices, spy_price) if spy_price else []
+    # Position sizing below is conviction- and risk-weighted, not equal
+    # split: each held name's composite score (conviction) and realized
+    # volatility (risk), captured above for re-underwritten holdings and
+    # from this run's candidate screen for new entries.
+    conviction_by_symbol: dict[str, float] = {}
+    volatility_by_symbol: dict[str, float] = {}
+    for symbol, assessment in held_assessments.items():
+        conviction_by_symbol[symbol] = assessment.composite_score
+        if assessment.volatility is not None:
+            volatility_by_symbol[symbol] = assessment.volatility
+    for c in candidates:
+        conviction_by_symbol.setdefault(c.symbol, c.composite_score)
+        if c.volatility is not None:
+            volatility_by_symbol.setdefault(c.symbol, c.volatility)
+
+    scoreboard = (
+        build_scoreboard(state, current_prices, spy_price, conviction_by_symbol, volatility_by_symbol)
+        if spy_price
+        else []
+    )
     if scoreboard:
         avg_alpha = sum(r["alpha_pct"] for r in scoreboard) / len(scoreboard)
         okr_summary = (

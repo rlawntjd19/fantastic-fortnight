@@ -36,3 +36,26 @@ def momentum(values: list[float], window: int) -> float | None:
     if base == 0:
         return None
     return (values[-1] - base) / base
+
+
+def volatility(values: list[float], window: int = 20) -> float | None:
+    """Annualized standard deviation of daily returns over the last
+    `window` bars — a simple realized-volatility estimate. This is the
+    risk term in the committee's conviction/risk position sizing
+    (`committee/performance_tracker.build_scoreboard`): a name with more
+    conviction *and* less realized volatility gets more capital per the
+    same idea real risk-parity/vol-targeting position sizing uses, not
+    equal-weight regardless of how risky each name actually is.
+    """
+    if len(values) < window + 1:
+        return None
+    changes = [
+        (values[i] - values[i - 1]) / values[i - 1]
+        for i in range(len(values) - window, len(values))
+        if values[i - 1] != 0
+    ]
+    if len(changes) < 2:
+        return None
+    mean = sum(changes) / len(changes)
+    variance = sum((c - mean) ** 2 for c in changes) / (len(changes) - 1)
+    return variance**0.5 * 252**0.5

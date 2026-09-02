@@ -39,9 +39,9 @@ def to_markdown(report: CommitteeReport) -> str:
     if report.scoreboard:
         total_invested = sum(row["allocated_value"] for row in report.scoreboard)
         lines.append(
-            f"## Portfolio allocation (${PORTFOLIO_CAPITAL_USD:,.0f} paper capital, "
-            f"equal-weighted across the {len(report.scoreboard)} name(s) actually held — "
-            "not investment advice, illustrative sizing only)"
+            f"## Portfolio allocation (${PORTFOLIO_CAPITAL_USD:,.0f} paper capital across "
+            f"the {len(report.scoreboard)} name(s) actually held, weighted by conviction "
+            "÷ realized volatility, not equal-split — not investment advice, illustrative sizing only)"
         )
         lines.append("")
         lines.append("| Symbol | Weight | Shares | Current Price | Market Value |")
