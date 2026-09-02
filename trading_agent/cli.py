@@ -25,6 +25,7 @@ from trading_agent.committee import backtest as committee_backtest
 from trading_agent.committee.daily_report import OKR_TARGET_LOW_PP, run_daily_cycle
 from trading_agent.committee.performance_tracker import DEFAULT_STATE_PATH, load_state, save_state
 from trading_agent.committee.render import write_report
+from trading_agent.committee.report_validation import validate_report
 from trading_agent.committee.universe import UNIVERSE
 from trading_agent.config import DEFAULT_CONFIG
 from trading_agent.dashboard import DashboardState, start_dashboard_server
@@ -375,6 +376,22 @@ def _run_daily_picks(args) -> int:
     print("=" * 60)
 
     report = run_daily_cycle(config, llm, provider, macro_provider, forecaster, state, run_date=run_date)
+
+    # Judge the report against its own numbers before persisting anything —
+    # weights that don't sum to 1, an alpha figure that doesn't match its own
+    # inputs, etc. indicate a real bug upstream, not something to silently
+    # write into the tracked state/report files and OKR history.
+    problems = validate_report(report)
+    if problems:
+        print(
+            "[trading_agent] refusing to write this report — it failed its own internal-consistency "
+            "checks:",
+            file=sys.stderr,
+        )
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
+
     save_state(state, state_path)
     # Live runs keep the traditional top-level research_team/LATEST_PICKS.md;
     # dry runs stay fully contained inside out_dir (see write_report's docstring).
