@@ -1,0 +1,2945 @@
+{
+  "run_date": "2026-09-02",
+  "universe_size": 40,
+  "screened_out": [],
+  "candidates": [
+    {
+      "symbol": "AAPL",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 4751427108864,
+      "last_price": 325.5799865722656,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] SMA10 (315.62) below SMA30 (315.79): downtrend",
+          "key_points": [
+            "SMA10 (315.62) below SMA30 (315.79): downtrend",
+            "RSI 73.9: overbought, pullback risk",
+            "10-bar momentum 2.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 37.4: richly valued",
+          "key_points": [
+            "P/E 37.4: richly valued",
+            "YoY revenue growth 16.4%",
+            "Forward P/E 34.1 < trailing 37.4: earnings expected to grow",
+            "Return on equity 148.8%",
+            "Profit margin 27.6%",
+            "Debt/Equity 78%",
+            "Analyst consensus: 25 buy-side vs 6 sell-side (13 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.2646781387683774,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +2.3% expected move (dispersion 3.7%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +2.3% expected move (dispersion 3.7%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 37.4: richly valued",
+        "bear_thesis": "[offline-stub] SMA10 (315.62) below SMA30 (315.79): downtrend",
+        "consensus_signal": "neutral",
+        "consensus_confidence": 0.14139368919770495,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 37.4: richly valued"
+      },
+      "relative_strength_vs_spy": 0.03235040518703864,
+      "composite_score": 0.1294,
+      "volatility": 0.1881810686272278,
+      "notes": []
+    },
+    {
+      "symbol": "MSFT",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 3690793271296,
+      "last_price": 497.0400085449219,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (496.37) above SMA30 (473.57): uptrend",
+          "key_points": [
+            "SMA10 (496.37) above SMA30 (473.57): uptrend",
+            "RSI 50.8: neutral",
+            "10-bar momentum 2.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.7,
+          "summary": "[offline-stub] P/E 27.7: fair value",
+          "key_points": [
+            "P/E 27.7: fair value",
+            "YoY revenue growth 17.7%",
+            "Forward P/E 21.1 < trailing 27.7: earnings expected to grow",
+            "Return on equity 34.0%",
+            "Profit margin 40.3%",
+            "Debt/Equity 29%",
+            "Analyst consensus: 52 buy-side vs 0 sell-side (3 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.013433100624741397,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -0.1% expected move (dispersion 3.9%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -0.1% expected move (dispersion 3.9%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (496.37) above SMA30 (473.57): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.9908208304028336,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (496.37) above SMA30 (473.57): uptrend"
+      },
+      "relative_strength_vs_spy": 0.03294989814176867,
+      "composite_score": 0.7263,
+      "volatility": 0.21800449330862595,
+      "notes": []
+    },
+    {
+      "symbol": "NVDA",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 5419794169856,
+      "last_price": 224.50999450683594,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (217.10) above SMA30 (213.95): uptrend",
+          "key_points": [
+            "SMA10 (217.10) above SMA30 (213.95): uptrend",
+            "RSI 49.4: neutral",
+            "10-bar momentum 3.2%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.7,
+          "summary": "[offline-stub] P/E 28.4: fair value",
+          "key_points": [
+            "P/E 28.4: fair value",
+            "YoY revenue growth 105.9%",
+            "Forward P/E 14.6 < trailing 28.4: earnings expected to grow",
+            "Return on equity 117.2%",
+            "Profit margin 63.7%",
+            "Debt/Equity 17%",
+            "Analyst consensus: 57 buy-side vs 1 sell-side (2 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.12262713637102715,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +1.7% expected move (dispersion 9.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +1.7% expected move (dispersion 9.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (217.10) above SMA30 (213.95): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (217.10) above SMA30 (213.95): uptrend"
+      },
+      "relative_strength_vs_spy": 0.0366782666474058,
+      "composite_score": 0.7467,
+      "volatility": 0.45778314699883815,
+      "notes": []
+    },
+    {
+      "symbol": "GOOGL",
+      "security_type": "stock",
+      "sector": "Communication Services",
+      "market_cap": 4130416099328,
+      "last_price": 337.7300109863281,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (342.19) below SMA30 (344.72): downtrend",
+          "key_points": [
+            "SMA10 (342.19) below SMA30 (344.72): downtrend",
+            "RSI 39.8: neutral",
+            "10-bar momentum -2.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] P/E 16.9: fair value",
+          "key_points": [
+            "P/E 16.9: fair value",
+            "YoY revenue growth 24.2%",
+            "Forward P/E 22.8 > trailing 16.9: earnings expected to shrink",
+            "Return on equity 48.7%",
+            "Profit margin 54.8%",
+            "Debt/Equity 19%",
+            "Analyst consensus: 58 buy-side vs 0 sell-side (5 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.31985777991364567,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -2.9% expected move (dispersion 4.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -2.9% expected move (dispersion 4.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 16.9: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (342.19) below SMA30 (344.72): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.3629996214975552,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 16.9: fair value"
+      },
+      "relative_strength_vs_spy": -0.015544228325433864,
+      "composite_score": -0.2437,
+      "volatility": 0.20774741544795328,
+      "notes": []
+    },
+    {
+      "symbol": "META",
+      "security_type": "stock",
+      "sector": "Communication Services",
+      "market_cap": 1514517954560,
+      "last_price": 594.5,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (569.54) below SMA30 (577.69): downtrend",
+          "key_points": [
+            "SMA10 (569.54) below SMA30 (577.69): downtrend",
+            "RSI 49.8: neutral",
+            "10-bar momentum 8.9%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.7,
+          "summary": "[offline-stub] P/E 22.4: fair value",
+          "key_points": [
+            "P/E 22.4: fair value",
+            "YoY revenue growth 28.0%",
+            "Forward P/E 17.0 < trailing 22.4: earnings expected to grow",
+            "Return on equity 29.8%",
+            "Profit margin 29.8%",
+            "Debt/Equity 43%",
+            "Analyst consensus: 55 buy-side vs 0 sell-side (7 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.05402929558686402,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +0.6% expected move (dispersion 6.2%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +0.6% expected move (dispersion 6.2%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 22.4: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (569.54) below SMA30 (577.69): downtrend",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.4481940935169337,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 22.4: fair value"
+      },
+      "relative_strength_vs_spy": 0.0935010277917233,
+      "composite_score": 0.5757,
+      "volatility": 0.3123747878114187,
+      "notes": []
+    },
+    {
+      "symbol": "AVGO",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 1752145461248,
+      "last_price": 368.3192138671875,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] SMA10 (365.22) below SMA30 (387.18): downtrend",
+          "key_points": [
+            "SMA10 (365.22) below SMA30 (387.18): downtrend",
+            "RSI 24.3: oversold, bounce potential",
+            "10-bar momentum 1.6%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 61.1: richly valued",
+          "key_points": [
+            "P/E 61.1: richly valued",
+            "YoY revenue growth 47.9%",
+            "Forward P/E 18.8 < trailing 61.1: earnings expected to grow",
+            "Return on equity 37.3%",
+            "Profit margin 38.8%",
+            "Debt/Equity 74%",
+            "Analyst consensus: 45 buy-side vs 0 sell-side (4 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.4142086480481275,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -6.5% expected move (dispersion 7.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -6.5% expected move (dispersion 7.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (365.22) below SMA30 (387.18): downtrend",
+        "bear_thesis": "[offline-stub] SMA10 (365.22) below SMA30 (387.18): downtrend",
+        "consensus_signal": "neutral",
+        "consensus_confidence": 0.01745086849935746,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (365.22) below SMA30 (387.18): downtrend"
+      },
+      "relative_strength_vs_spy": 0.02084210396379936,
+      "composite_score": 0.0834,
+      "volatility": 0.35759501222658757,
+      "notes": []
+    },
+    {
+      "symbol": "CRM",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 212786233344,
+      "last_price": 258.4649963378906,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] SMA10 (231.71) above SMA30 (202.48): uptrend",
+          "key_points": [
+            "SMA10 (231.71) above SMA30 (202.48): uptrend",
+            "RSI 83.1: overbought, pullback risk",
+            "10-bar momentum 25.4%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.6,
+          "summary": "[offline-stub] P/E 23.7: fair value",
+          "key_points": [
+            "P/E 23.7: fair value",
+            "YoY revenue growth 10.8%",
+            "Forward P/E 16.2 < trailing 23.7: earnings expected to grow",
+            "Return on equity 19.4%",
+            "Profit margin 22.0%",
+            "Debt/Equity 110%",
+            "Analyst consensus: 40 buy-side vs 2 sell-side (14 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.22898220743300118,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +20.1% expected move (dispersion 16.8%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +20.1% expected move (dispersion 16.8%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (231.71) above SMA30 (202.48): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (231.71) above SMA30 (202.48): uptrend"
+      },
+      "relative_strength_vs_spy": 0.25886961660270724,
+      "composite_score": 1.0,
+      "volatility": 0.8640898910294883,
+      "notes": []
+    },
+    {
+      "symbol": "ADBE",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 111673647104,
+      "last_price": 280.94000244140625,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (281.17) above SMA30 (263.69): uptrend",
+          "key_points": [
+            "SMA10 (281.17) above SMA30 (263.69): uptrend",
+            "RSI 57.1: neutral",
+            "10-bar momentum 3.1%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.6,
+          "summary": "[offline-stub] P/E 16.1: fair value",
+          "key_points": [
+            "P/E 16.1: fair value",
+            "YoY revenue growth 12.7%",
+            "Forward P/E 10.2 < trailing 16.1: earnings expected to grow",
+            "Return on equity 63.0%",
+            "Profit margin 28.7%",
+            "Debt/Equity 61%",
+            "Analyst consensus: 12 buy-side vs 5 sell-side (23 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.333937197797041,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +4.5% expected move (dispersion 8.4%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +4.5% expected move (dispersion 8.4%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (281.17) above SMA30 (263.69): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (281.17) above SMA30 (263.69): uptrend"
+      },
+      "relative_strength_vs_spy": 0.03581906525864262,
+      "composite_score": 0.7433,
+      "volatility": 0.42148117729742,
+      "notes": []
+    },
+    {
+      "symbol": "AMD",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 745910501376,
+      "last_price": 456.9898986816406,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (468.91) below SMA30 (481.01): downtrend",
+          "key_points": [
+            "SMA10 (468.91) below SMA30 (481.01): downtrend",
+            "RSI 41.9: neutral",
+            "10-bar momentum -2.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 116.9: richly valued",
+          "key_points": [
+            "P/E 116.9: richly valued",
+            "YoY revenue growth 50.1%",
+            "Forward P/E 29.6 < trailing 116.9: earnings expected to grow",
+            "Return on equity 10.2%",
+            "Profit margin 15.6%",
+            "Debt/Equity 6%",
+            "Analyst consensus: 43 buy-side vs 0 sell-side (11 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.23407654973911735,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -3.2% expected move (dispersion 8.6%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -3.2% expected move (dispersion 8.6%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 116.9: richly valued",
+        "bear_thesis": "[offline-stub] SMA10 (468.91) below SMA30 (481.01): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.42199728754107513,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 116.9: richly valued"
+      },
+      "relative_strength_vs_spy": -0.015485005057104036,
+      "composite_score": -0.2729,
+      "volatility": 0.4351713415498341,
+      "notes": []
+    },
+    {
+      "symbol": "ORCL",
+      "security_type": "stock",
+      "sector": "Technology",
+      "market_cap": 420779229184,
+      "last_price": 146.0800018310547,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (146.39) above SMA30 (140.88): uptrend",
+          "key_points": [
+            "SMA10 (146.39) above SMA30 (140.88): uptrend",
+            "RSI 39.8: neutral",
+            "10-bar momentum 1.6%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] P/E 25.0: fair value",
+          "key_points": [
+            "P/E 25.0: fair value",
+            "YoY revenue growth 20.6%",
+            "Forward P/E 13.4 < trailing 25.0: earnings expected to grow",
+            "Return on equity 53.4%",
+            "Profit margin 25.4%",
+            "Debt/Equity 389%",
+            "Analyst consensus: 36 buy-side vs 1 sell-side (7 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.09731500627890097,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +1.4% expected move (dispersion 9.2%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +1.4% expected move (dispersion 9.2%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (146.39) above SMA30 (140.88): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (146.39) above SMA30 (140.88): uptrend"
+      },
+      "relative_strength_vs_spy": 0.02051781572117393,
+      "composite_score": 0.6821,
+      "volatility": 0.4625302936093496,
+      "notes": []
+    },
+    {
+      "symbol": "AMZN",
+      "security_type": "stock",
+      "sector": "Consumer Cyclical",
+      "market_cap": 2751480725504,
+      "last_price": 255.08999633789062,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (259.46) above SMA30 (258.97): uptrend",
+          "key_points": [
+            "SMA10 (259.46) above SMA30 (258.97): uptrend",
+            "RSI 40.0: neutral",
+            "10-bar momentum -4.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] P/E 20.5: fair value",
+          "key_points": [
+            "P/E 20.5: fair value",
+            "YoY revenue growth 19.6%",
+            "Forward P/E 24.5 > trailing 20.5: earnings expected to shrink",
+            "Return on equity 30.6%",
+            "Profit margin 17.4%",
+            "Debt/Equity 46%",
+            "Analyst consensus: 59 buy-side vs 0 sell-side (2 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.31782436802728464,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -3.2% expected move (dispersion 5.2%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -3.2% expected move (dispersion 5.2%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (259.46) above SMA30 (258.97): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.40472538828751714,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (259.46) above SMA30 (258.97): uptrend"
+      },
+      "relative_strength_vs_spy": -0.03570478811537937,
+      "composite_score": 0.0595,
+      "volatility": 0.2608885403092718,
+      "notes": []
+    },
+    {
+      "symbol": "COST",
+      "security_type": "stock",
+      "sector": "Consumer Defensive",
+      "market_cap": 408614731776,
+      "last_price": 921.385009765625,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (945.41) below SMA30 (949.81): downtrend",
+          "key_points": [
+            "SMA10 (945.41) below SMA30 (949.81): downtrend",
+            "RSI 36.8: neutral",
+            "10-bar momentum -3.7%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.3,
+          "summary": "[offline-stub] P/E 46.5: richly valued",
+          "key_points": [
+            "P/E 46.5: richly valued",
+            "YoY revenue growth 21.5%",
+            "Forward P/E 40.7 < trailing 46.5: earnings expected to grow",
+            "Return on equity 29.2%",
+            "Profit margin 3.0%",
+            "Debt/Equity 60%",
+            "Analyst consensus: 23 buy-side vs 2 sell-side (14 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.16297435861818185,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -1.5% expected move (dispersion 4.0%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -1.5% expected move (dispersion 4.0%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 46.5: richly valued",
+        "bear_thesis": "[offline-stub] SMA10 (945.41) below SMA30 (949.81): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.5053481586506751,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 46.5: richly valued"
+      },
+      "relative_strength_vs_spy": -0.03247210562771973,
+      "composite_score": -0.3826,
+      "volatility": 0.20450147094979332,
+      "notes": []
+    },
+    {
+      "symbol": "WMT",
+      "security_type": "stock",
+      "sector": "Consumer Defensive",
+      "market_cap": 842641178624,
+      "last_price": 105.88500213623047,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] SMA10 (104.59) below SMA30 (109.83): downtrend",
+          "key_points": [
+            "SMA10 (104.59) below SMA30 (109.83): downtrend",
+            "RSI 29.8: oversold, bounce potential",
+            "10-bar momentum -7.1%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.1,
+          "summary": "[offline-stub] P/E 38.4: richly valued",
+          "key_points": [
+            "P/E 38.4: richly valued",
+            "YoY revenue growth 5.9%",
+            "Forward P/E 32.8 < trailing 38.4: earnings expected to grow",
+            "Return on equity 22.3%",
+            "Profit margin 3.0%",
+            "Debt/Equity 72%",
+            "Analyst consensus: 37 buy-side vs 1 sell-side (5 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.2022650960071023,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -2.5% expected move (dispersion 7.5%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -2.5% expected move (dispersion 7.5%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 38.4: richly valued",
+        "bear_thesis": "[offline-stub] SMA10 (104.59) below SMA30 (109.83): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.7507058439966964,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 38.4: richly valued"
+      },
+      "relative_strength_vs_spy": -0.06667124246319718,
+      "composite_score": -0.642,
+      "volatility": 0.37758262802428255,
+      "notes": []
+    },
+    {
+      "symbol": "HD",
+      "security_type": "stock",
+      "sector": "Consumer Cyclical",
+      "market_cap": 317075718144,
+      "last_price": 317.80999755859375,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] SMA10 (330.45) below SMA30 (338.06): downtrend",
+          "key_points": [
+            "SMA10 (330.45) below SMA30 (338.06): downtrend",
+            "RSI 24.8: oversold, bounce potential",
+            "10-bar momentum -7.7%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.2,
+          "summary": "[offline-stub] P/E 22.2: fair value",
+          "key_points": [
+            "P/E 22.2: fair value",
+            "YoY revenue growth 5.7%",
+            "Forward P/E 19.8 < trailing 22.2: earnings expected to grow",
+            "Return on equity 104.3%",
+            "Profit margin 8.4%",
+            "Debt/Equity 380%",
+            "Analyst consensus: 21 buy-side vs 0 sell-side (15 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.5113203324800617,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -4.8% expected move (dispersion 4.4%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -4.8% expected move (dispersion 4.4%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 22.2: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (330.45) below SMA30 (338.06): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.6697818163581565,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 22.2: fair value"
+      },
+      "relative_strength_vs_spy": -0.07220562080047896,
+      "composite_score": -0.6237,
+      "volatility": 0.22014068100498851,
+      "notes": []
+    },
+    {
+      "symbol": "MCD",
+      "security_type": "stock",
+      "sector": "Consumer Cyclical",
+      "market_cap": 184177852416,
+      "last_price": 260.2699890136719,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (264.26) below SMA30 (267.11): downtrend",
+          "key_points": [
+            "SMA10 (264.26) below SMA30 (267.11): downtrend",
+            "RSI 35.6: neutral",
+            "10-bar momentum -2.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.3,
+          "summary": "[offline-stub] P/E 21.2: fair value",
+          "key_points": [
+            "P/E 21.2: fair value",
+            "YoY revenue growth 3.7%",
+            "Forward P/E 18.6 < trailing 21.2: earnings expected to grow",
+            "Profit margin 31.7%",
+            "Analyst consensus: 19 buy-side vs 1 sell-side (14 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.313767330898775,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -2.7% expected move (dispersion 3.5%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -2.7% expected move (dispersion 3.5%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 21.2: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (264.26) below SMA30 (267.11): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.5600422547117498,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 21.2: fair value"
+      },
+      "relative_strength_vs_spy": -0.015196028842668578,
+      "composite_score": -0.3408,
+      "volatility": 0.17996792949409757,
+      "notes": []
+    },
+    {
+      "symbol": "NKE",
+      "security_type": "stock",
+      "sector": "Consumer Cyclical",
+      "market_cap": 56766078976,
+      "last_price": 38.26499938964844,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (38.99) below SMA30 (40.42): downtrend",
+          "key_points": [
+            "SMA10 (38.99) below SMA30 (40.42): downtrend",
+            "RSI 37.4: neutral",
+            "10-bar momentum -5.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.2,
+          "summary": "[offline-stub] P/E 18.2: fair value",
+          "key_points": [
+            "P/E 18.2: fair value",
+            "YoY revenue growth -1.1%",
+            "Forward P/E 16.7 < trailing 18.2: earnings expected to grow",
+            "Return on equity 22.1%",
+            "Profit margin 6.7%",
+            "Debt/Equity 74%",
+            "Analyst consensus: 11 buy-side vs 3 sell-side (25 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.363778482337409,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -4.1% expected move (dispersion 6.2%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -4.1% expected move (dispersion 6.2%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 18.2: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (38.99) below SMA30 (40.42): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.695534669369573,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 18.2: fair value"
+      },
+      "relative_strength_vs_spy": -0.05322267348360699,
+      "composite_score": -0.5607,
+      "volatility": 0.3113174621289755,
+      "notes": []
+    },
+    {
+      "symbol": "UNH",
+      "security_type": "stock",
+      "sector": "Healthcare",
+      "market_cap": 358696845312,
+      "last_price": 399.6199951171875,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (394.46) below SMA30 (404.47): downtrend",
+          "key_points": [
+            "SMA10 (394.46) below SMA30 (404.47): downtrend",
+            "RSI 50.5: neutral",
+            "10-bar momentum 2.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.2,
+          "summary": "[offline-stub] P/E 25.7: fair value",
+          "key_points": [
+            "P/E 25.7: fair value",
+            "YoY revenue growth 0.4%",
+            "Forward P/E 17.8 < trailing 25.7: earnings expected to grow",
+            "Return on equity 14.2%",
+            "Profit margin 3.1%",
+            "Debt/Equity 69%",
+            "Analyst consensus: 23 buy-side vs 0 sell-side (4 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.056180838146512306,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -0.5% expected move (dispersion 3.8%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -0.5% expected move (dispersion 3.8%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 25.7: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (394.46) below SMA30 (404.47): downtrend",
+        "consensus_signal": "neutral",
+        "consensus_confidence": 0.09877892688132076,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 25.7: fair value"
+      },
+      "relative_strength_vs_spy": 0.03306484247811309,
+      "composite_score": 0.1323,
+      "volatility": 0.2055274370820237,
+      "notes": []
+    },
+    {
+      "symbol": "LLY",
+      "security_type": "stock",
+      "sector": "Healthcare",
+      "market_cap": 1037362790400,
+      "last_price": 1163.300048828125,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (1200.05) above SMA30 (1193.92): uptrend",
+          "key_points": [
+            "SMA10 (1200.05) above SMA30 (1193.92): uptrend",
+            "RSI 42.1: neutral",
+            "10-bar momentum -9.1%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 39.0: richly valued",
+          "key_points": [
+            "P/E 39.0: richly valued",
+            "YoY revenue growth 47.7%",
+            "Forward P/E 24.6 < trailing 39.0: earnings expected to grow",
+            "Return on equity 102.3%",
+            "Profit margin 33.5%",
+            "Debt/Equity 162%",
+            "Analyst consensus: 24 buy-side vs 2 sell-side (4 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.08469419413941061,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -1.0% expected move (dispersion 6.6%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -1.0% expected move (dispersion 6.6%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (1200.05) above SMA30 (1193.92): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.884721840984986,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (1200.05) above SMA30 (1193.92): uptrend"
+      },
+      "relative_strength_vs_spy": -0.08668008617209995,
+      "composite_score": 0.1841,
+      "volatility": 0.33915985694169815,
+      "notes": []
+    },
+    {
+      "symbol": "JNJ",
+      "security_type": "stock",
+      "sector": "Healthcare",
+      "market_cap": 664782569472,
+      "last_price": 275.8550109863281,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (269.65) above SMA30 (263.29): uptrend",
+          "key_points": [
+            "SMA10 (269.65) above SMA30 (263.29): uptrend",
+            "RSI 65.2: neutral",
+            "10-bar momentum 1.4%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.2,
+          "summary": "[offline-stub] P/E 32.0: richly valued",
+          "key_points": [
+            "P/E 32.0: richly valued",
+            "YoY revenue growth 6.6%",
+            "Forward P/E 22.2 < trailing 32.0: earnings expected to grow",
+            "Return on equity 25.7%",
+            "Profit margin 21.5%",
+            "Debt/Equity 58%",
+            "Analyst consensus: 16 buy-side vs 1 sell-side (6 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.4566884689548353,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +4.2% expected move (dispersion 4.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +4.2% expected move (dispersion 4.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (269.65) above SMA30 (263.29): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (269.65) above SMA30 (263.29): uptrend"
+      },
+      "relative_strength_vs_spy": 0.018651767563848568,
+      "composite_score": 0.6746,
+      "volatility": 0.20720025970783634,
+      "notes": []
+    },
+    {
+      "symbol": "ABBV",
+      "security_type": "stock",
+      "sector": "Healthcare",
+      "market_cap": 461394345984,
+      "last_price": 261.1000061035156,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (261.11) above SMA30 (255.55): uptrend",
+          "key_points": [
+            "SMA10 (261.11) above SMA30 (255.55): uptrend",
+            "RSI 62.0: neutral",
+            "10-bar momentum -1.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.2,
+          "summary": "[offline-stub] P/E 73.8: richly valued",
+          "key_points": [
+            "P/E 73.8: richly valued",
+            "YoY revenue growth 10.2%",
+            "Forward P/E 16.0 < trailing 73.8: earnings expected to grow",
+            "Profit margin 9.8%",
+            "Analyst consensus: 25 buy-side vs 1 sell-side (5 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.41129356139358386,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +3.7% expected move (dispersion 4.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +3.7% expected move (dispersion 4.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (261.11) above SMA30 (255.55): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (261.11) above SMA30 (255.55): uptrend"
+      },
+      "relative_strength_vs_spy": -0.013577247510120308,
+      "composite_score": 0.5457,
+      "volatility": 0.21128512873792246,
+      "notes": []
+    },
+    {
+      "symbol": "MRK",
+      "security_type": "stock",
+      "sector": "Healthcare",
+      "market_cap": 374282256384,
+      "last_price": 151.72869873046875,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (150.90) above SMA30 (138.45): uptrend",
+          "key_points": [
+            "SMA10 (150.90) above SMA30 (138.45): uptrend",
+            "RSI 67.8: neutral",
+            "10-bar momentum -0.3%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] P/E 122.3: richly valued",
+          "key_points": [
+            "P/E 122.3: richly valued",
+            "YoY revenue growth 5.1%",
+            "Forward P/E 15.9 < trailing 122.3: earnings expected to grow",
+            "Return on equity 7.0%",
+            "Profit margin 4.8%",
+            "Debt/Equity 128%",
+            "Analyst consensus: 20 buy-side vs 0 sell-side (8 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.3307255931626229,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +9.7% expected move (dispersion 10.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +9.7% expected move (dispersion 10.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (150.90) above SMA30 (138.45): uptrend",
+        "bear_thesis": "[offline-stub] P/E 122.3: richly valued",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (150.90) above SMA30 (138.45): uptrend"
+      },
+      "relative_strength_vs_spy": 0.0016364980043257083,
+      "composite_score": 0.6065,
+      "volatility": 0.5089390659804599,
+      "notes": []
+    },
+    {
+      "symbol": "JPM",
+      "security_type": "stock",
+      "sector": "Financial Services",
+      "market_cap": 946899124224,
+      "last_price": 356.2200012207031,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (355.17) below SMA30 (356.45): downtrend",
+          "key_points": [
+            "SMA10 (355.17) below SMA30 (356.45): downtrend",
+            "RSI 38.9: neutral",
+            "10-bar momentum -0.3%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.6,
+          "summary": "[offline-stub] P/E 15.2: fair value",
+          "key_points": [
+            "P/E 15.2: fair value",
+            "YoY revenue growth 30.4%",
+            "Forward P/E 14.2 < trailing 15.2: earnings expected to grow",
+            "Return on equity 17.8%",
+            "Profit margin 34.9%",
+            "Analyst consensus: 13 buy-side vs 1 sell-side (10 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.0025042298706048796,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +0.0% expected move (dispersion 2.5%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +0.0% expected move (dispersion 2.5%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 15.2: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (355.17) below SMA30 (356.45): downtrend",
+        "consensus_signal": "neutral",
+        "consensus_confidence": 0.11090538327880174,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 15.2: fair value"
+      },
+      "relative_strength_vs_spy": 0.0018220007839415782,
+      "composite_score": 0.0073,
+      "volatility": 0.1272303444082485,
+      "notes": []
+    },
+    {
+      "symbol": "V",
+      "security_type": "stock",
+      "sector": "Financial Services",
+      "market_cap": 708619141120,
+      "last_price": 379.5400085449219,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (378.01) above SMA30 (368.25): uptrend",
+          "key_points": [
+            "SMA10 (378.01) above SMA30 (368.25): uptrend",
+            "RSI 63.0: neutral",
+            "10-bar momentum 3.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 32.3: richly valued",
+          "key_points": [
+            "P/E 32.3: richly valued",
+            "YoY revenue growth 14.4%",
+            "Forward P/E 25.3 < trailing 32.3: earnings expected to grow",
+            "Return on equity 61.2%",
+            "Profit margin 50.8%",
+            "Debt/Equity 68%",
+            "Analyst consensus: 36 buy-side vs 1 sell-side (3 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.16003818181499405,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +1.5% expected move (dispersion 4.2%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +1.5% expected move (dispersion 4.2%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (378.01) above SMA30 (368.25): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (378.01) above SMA30 (368.25): uptrend"
+      },
+      "relative_strength_vs_spy": 0.043032571010663496,
+      "composite_score": 0.7721,
+      "volatility": 0.20990876882910084,
+      "notes": []
+    },
+    {
+      "symbol": "MA",
+      "security_type": "stock",
+      "sector": "Financial Services",
+      "market_cap": 516438491136,
+      "last_price": 589.5349731445312,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (589.92) above SMA30 (572.66): uptrend",
+          "key_points": [
+            "SMA10 (589.92) above SMA30 (572.66): uptrend",
+            "RSI 63.7: neutral",
+            "10-bar momentum 2.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.3,
+          "summary": "[offline-stub] P/E 32.4: richly valued",
+          "key_points": [
+            "P/E 32.4: richly valued",
+            "YoY revenue growth 14.1%",
+            "Forward P/E 25.6 < trailing 32.4: earnings expected to grow",
+            "Return on equity 241.2%",
+            "Profit margin 46.3%",
+            "Debt/Equity 440%",
+            "Analyst consensus: 37 buy-side vs 0 sell-side (3 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.14488576861613872,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +1.3% expected move (dispersion 4.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +1.3% expected move (dispersion 4.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (589.92) above SMA30 (572.66): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (589.92) above SMA30 (572.66): uptrend"
+      },
+      "relative_strength_vs_spy": 0.0322987869594172,
+      "composite_score": 0.7292,
+      "volatility": 0.20821130741530883,
+      "notes": []
+    },
+    {
+      "symbol": "GS",
+      "security_type": "stock",
+      "sector": "Financial Services",
+      "market_cap": 293187747840,
+      "last_price": 1006.9249877929688,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (1024.68) below SMA30 (1030.04): downtrend",
+          "key_points": [
+            "SMA10 (1024.68) below SMA30 (1030.04): downtrend",
+            "RSI 41.6: neutral",
+            "10-bar momentum -1.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] P/E 15.5: fair value",
+          "key_points": [
+            "P/E 15.5: fair value",
+            "YoY revenue growth 42.5%",
+            "Forward P/E 13.6 < trailing 15.5: earnings expected to grow",
+            "Return on equity 16.9%",
+            "Profit margin 31.0%",
+            "Debt/Equity 725%",
+            "Analyst consensus: 7 buy-side vs 2 sell-side (16 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.10300984079470052,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -1.0% expected move (dispersion 4.4%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -1.0% expected move (dispersion 4.4%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 15.5: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (1024.68) below SMA30 (1030.04): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.18477323110463162,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 15.5: fair value"
+      },
+      "relative_strength_vs_spy": -0.0048529129992353716,
+      "composite_score": -0.1026,
+      "volatility": 0.23769097196035074,
+      "notes": []
+    },
+    {
+      "symbol": "BRK-B",
+      "security_type": "stock",
+      "sector": "Financial Services",
+      "market_cap": 1082021773312,
+      "last_price": 505.45001220703125,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (502.67) below SMA30 (507.19): downtrend",
+          "key_points": [
+            "SMA10 (502.67) below SMA30 (507.19): downtrend",
+            "RSI 48.1: neutral",
+            "10-bar momentum 1.2%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 12.7: reasonably valued or cheap",
+          "key_points": [
+            "P/E 12.7: reasonably valued or cheap",
+            "YoY revenue growth 10.0%",
+            "Forward P/E 22.8 > trailing 12.7: earnings expected to shrink",
+            "Return on equity 12.1%",
+            "Profit margin 22.3%",
+            "Debt/Equity 17%",
+            "Analyst consensus: 2 buy-side vs 0 sell-side (2 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.23822562490269475,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -1.9% expected move (dispersion 3.0%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -1.9% expected move (dispersion 3.0%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 12.7: reasonably valued or cheap",
+        "bear_thesis": "[offline-stub] SMA10 (502.67) below SMA30 (507.19): downtrend",
+        "consensus_signal": "neutral",
+        "consensus_confidence": 0.09932794374442852,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 12.7: reasonably valued or cheap"
+      },
+      "relative_strength_vs_spy": 0.016401972459149157,
+      "composite_score": 0.0656,
+      "volatility": 0.15555850797282714,
+      "notes": []
+    },
+    {
+      "symbol": "CAT",
+      "security_type": "stock",
+      "sector": "Industrials",
+      "market_cap": 363356913664,
+      "last_price": 790.4650268554688,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (807.19) below SMA30 (834.64): downtrend",
+          "key_points": [
+            "SMA10 (807.19) below SMA30 (834.64): downtrend",
+            "RSI 32.9: neutral",
+            "10-bar momentum -3.1%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.2,
+          "summary": "[offline-stub] P/E 34.0: richly valued",
+          "key_points": [
+            "P/E 34.0: richly valued",
+            "YoY revenue growth 24.0%",
+            "Forward P/E 24.4 < trailing 34.0: earnings expected to grow",
+            "Return on equity 57.0%",
+            "Profit margin 14.5%",
+            "Debt/Equity 233%",
+            "Analyst consensus: 14 buy-side vs 2 sell-side (12 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.3743224817155897,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -4.0% expected move (dispersion 5.7%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -4.0% expected move (dispersion 5.7%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 34.0: richly valued",
+        "bear_thesis": "[offline-stub] SMA10 (807.19) below SMA30 (834.64): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.6979587634260946,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 34.0: richly valued"
+      },
+      "relative_strength_vs_spy": -0.026737856856472376,
+      "composite_score": -0.4559,
+      "volatility": 0.28921778875192705,
+      "notes": []
+    },
+    {
+      "symbol": "HON",
+      "security_type": "stock",
+      "sector": "Industrials",
+      "market_cap": 65083629568,
+      "last_price": 205.35000610351562,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] SMA10 (215.20) below SMA30 (231.15): downtrend",
+          "key_points": [
+            "SMA10 (215.20) below SMA30 (231.15): downtrend",
+            "RSI 16.0: oversold, bounce potential",
+            "10-bar momentum -7.4%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 7.9: reasonably valued or cheap",
+          "key_points": [
+            "P/E 7.9: reasonably valued or cheap",
+            "YoY revenue growth 4.3%",
+            "Forward P/E 20.5 > trailing 7.9: earnings expected to shrink",
+            "Return on equity 46.6%",
+            "Profit margin 21.6%",
+            "Debt/Equity 185%",
+            "Analyst consensus: 15 buy-side vs 1 sell-side (8 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.4680642279468343,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -7.7% expected move (dispersion 5.7%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -7.7% expected move (dispersion 5.7%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 7.9: reasonably valued or cheap",
+        "bear_thesis": "[offline-stub] SMA10 (215.20) below SMA30 (231.15): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.41523213336217013,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 7.9: reasonably valued or cheap"
+      },
+      "relative_strength_vs_spy": -0.0691405149190699,
+      "composite_score": -0.4842,
+      "volatility": 0.2954932646450859,
+      "notes": []
+    },
+    {
+      "symbol": "GE",
+      "security_type": "stock",
+      "sector": "Industrials",
+      "market_cap": 342696525824,
+      "last_price": 330.2900085449219,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (342.12) below SMA30 (357.23): downtrend",
+          "key_points": [
+            "SMA10 (342.12) below SMA30 (357.23): downtrend",
+            "RSI 33.5: neutral",
+            "10-bar momentum -7.3%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 38.9: richly valued",
+          "key_points": [
+            "P/E 38.9: richly valued",
+            "YoY revenue growth 21.1%",
+            "Forward P/E 36.4 < trailing 38.9: earnings expected to grow",
+            "Return on equity 48.2%",
+            "Profit margin 17.7%",
+            "Debt/Equity 113%",
+            "Analyst consensus: 19 buy-side vs 1 sell-side (2 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bearish",
+          "confidence": 0.4549783601378,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -6.2% expected move (dispersion 6.0%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -6.2% expected move (dispersion 6.0%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 38.9: richly valued",
+        "bear_thesis": "[offline-stub] SMA10 (342.12) below SMA30 (357.23): downtrend",
+        "consensus_signal": "bearish",
+        "consensus_confidence": 0.5015509119192649,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 38.9: richly valued"
+      },
+      "relative_strength_vs_spy": -0.06808505793091946,
+      "composite_score": -0.5231,
+      "volatility": 0.30323421077710894,
+      "notes": []
+    },
+    {
+      "symbol": "XOM",
+      "security_type": "stock",
+      "sector": "Energy",
+      "market_cap": 677252825088,
+      "last_price": 164.71499633789062,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (161.75) above SMA30 (158.32): uptrend",
+          "key_points": [
+            "SMA10 (161.75) above SMA30 (158.32): uptrend",
+            "RSI 62.7: neutral",
+            "10-bar momentum -0.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] P/E 21.2: fair value",
+          "key_points": [
+            "P/E 21.2: fair value",
+            "YoY revenue growth 44.1%",
+            "Forward P/E 15.5 < trailing 21.2: earnings expected to grow",
+            "Return on equity 12.6%",
+            "Profit margin 9.1%",
+            "Debt/Equity 16%",
+            "Analyst consensus: 10 buy-side vs 0 sell-side (15 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.374101665033307,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +3.8% expected move (dispersion 5.1%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +3.8% expected move (dispersion 5.1%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (161.75) above SMA30 (158.32): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (161.75) above SMA30 (158.32): uptrend"
+      },
+      "relative_strength_vs_spy": 0.004399223024321015,
+      "composite_score": 0.6176,
+      "volatility": 0.2654189551292102,
+      "notes": []
+    },
+    {
+      "symbol": "CVX",
+      "security_type": "stock",
+      "sector": "Energy",
+      "market_cap": 417047052288,
+      "last_price": 212.60519409179688,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] SMA10 (204.57) above SMA30 (196.91): uptrend",
+          "key_points": [
+            "SMA10 (204.57) above SMA30 (196.91): uptrend",
+            "RSI 78.4: overbought, pullback risk",
+            "10-bar momentum 3.3%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.5,
+          "summary": "[offline-stub] P/E 20.5: fair value",
+          "key_points": [
+            "P/E 20.5: fair value",
+            "YoY revenue growth 53.5%",
+            "Forward P/E 16.1 < trailing 20.5: earnings expected to grow",
+            "Return on equity 12.2%",
+            "Profit margin 9.8%",
+            "Debt/Equity 19%",
+            "Analyst consensus: 20 buy-side vs 1 sell-side (4 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.533361029345664,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +6.9% expected move (dispersion 4.4%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +6.9% expected move (dispersion 4.4%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (204.57) above SMA30 (196.91): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (204.57) above SMA30 (196.91): uptrend"
+      },
+      "relative_strength_vs_spy": 0.03800095358499785,
+      "composite_score": 0.752,
+      "volatility": 0.22162540956191912,
+      "notes": []
+    },
+    {
+      "symbol": "NFLX",
+      "security_type": "stock",
+      "sector": "Communication Services",
+      "market_cap": 344066326528,
+      "last_price": 82.62999725341797,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (80.95) above SMA30 (76.48): uptrend",
+          "key_points": [
+            "SMA10 (80.95) above SMA30 (76.48): uptrend",
+            "RSI 63.2: neutral",
+            "10-bar momentum 3.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.6,
+          "summary": "[offline-stub] P/E 26.0: fair value",
+          "key_points": [
+            "P/E 26.0: fair value",
+            "YoY revenue growth 13.4%",
+            "Forward P/E 21.6 < trailing 26.0: earnings expected to grow",
+            "Return on equity 49.5%",
+            "Profit margin 28.2%",
+            "Debt/Equity 55%",
+            "Analyst consensus: 35 buy-side vs 0 sell-side (16 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.43113984253294824,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +6.4% expected move (dispersion 6.6%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +6.4% expected move (dispersion 6.6%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (80.95) above SMA30 (76.48): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (80.95) above SMA30 (76.48): uptrend"
+      },
+      "relative_strength_vs_spy": 0.0347754033327955,
+      "composite_score": 0.7391,
+      "volatility": 0.3344400478275388,
+      "notes": []
+    },
+    {
+      "symbol": "DIS",
+      "security_type": "stock",
+      "sector": "Communication Services",
+      "market_cap": 187285078016,
+      "last_price": 108.46499633789062,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.75,
+          "summary": "[offline-stub] SMA10 (108.37) above SMA30 (103.38): uptrend",
+          "key_points": [
+            "SMA10 (108.37) above SMA30 (103.38): uptrend",
+            "RSI 58.0: neutral",
+            "10-bar momentum 1.4%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.3,
+          "summary": "[offline-stub] P/E 22.4: fair value",
+          "key_points": [
+            "P/E 22.4: fair value",
+            "YoY revenue growth 6.8%",
+            "Forward P/E 14.5 < trailing 22.4: earnings expected to grow",
+            "Return on equity 8.0%",
+            "Profit margin 8.7%",
+            "Debt/Equity 39%",
+            "Analyst consensus: 29 buy-side vs 1 sell-side (2 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.19911600711336233,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +2.0% expected move (dispersion 5.2%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +2.0% expected move (dispersion 5.2%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (108.37) above SMA30 (103.38): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (108.37) above SMA30 (103.38): uptrend"
+      },
+      "relative_strength_vs_spy": 0.019088218292275864,
+      "composite_score": 0.6764,
+      "volatility": 0.27570217039071776,
+      "notes": []
+    },
+    {
+      "symbol": "PG",
+      "security_type": "stock",
+      "sector": "Consumer Defensive",
+      "market_cap": 343035478016,
+      "last_price": 147.69000244140625,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bearish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (145.06) below SMA30 (145.47): downtrend",
+          "key_points": [
+            "SMA10 (145.06) below SMA30 (145.47): downtrend",
+            "RSI 60.7: neutral",
+            "10-bar momentum 2.3%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 22.3: fair value",
+          "key_points": [
+            "P/E 22.3: fair value",
+            "YoY revenue growth 1.5%",
+            "Forward P/E 20.0 < trailing 22.3: earnings expected to grow",
+            "Return on equity 30.3%",
+            "Profit margin 18.4%",
+            "Debt/Equity 64%",
+            "Analyst consensus: 13 buy-side vs 0 sell-side (12 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.038346035492671404,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +0.3% expected move (dispersion 2.6%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +0.3% expected move (dispersion 2.6%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] P/E 22.3: fair value",
+        "bear_thesis": "[offline-stub] SMA10 (145.06) below SMA30 (145.47): downtrend",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.2179136542751208,
+        "rationale": "[offline-stub] Bull case: [offline-stub] P/E 22.3: fair value"
+      },
+      "relative_strength_vs_spy": 0.027658665080358653,
+      "composite_score": 0.2087,
+      "volatility": 0.13053716304015747,
+      "notes": []
+    },
+    {
+      "symbol": "KO",
+      "security_type": "stock",
+      "sector": "Consumer Defensive",
+      "market_cap": 380818620416,
+      "last_price": 88.51000213623047,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (89.92) above SMA30 (87.85): uptrend",
+          "key_points": [
+            "SMA10 (89.92) above SMA30 (87.85): uptrend",
+            "RSI 54.6: neutral",
+            "10-bar momentum -2.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bullish",
+          "confidence": 0.4,
+          "summary": "[offline-stub] P/E 26.6: fair value",
+          "key_points": [
+            "P/E 26.6: fair value",
+            "YoY revenue growth 6.7%",
+            "Forward P/E 25.1 < trailing 26.6: earnings expected to grow",
+            "Return on equity 42.1%",
+            "Profit margin 28.6%",
+            "Debt/Equity 116%",
+            "Analyst consensus: 19 buy-side vs 1 sell-side (4 hold)"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "bullish",
+          "confidence": 0.13051673819120846,
+          "summary": "[offline-stub] heuristic 10-bar forecast: +1.0% expected move (dispersion 3.0%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: +1.0% expected move (dispersion 3.0%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (89.92) above SMA30 (87.85): uptrend",
+        "bear_thesis": "[offline-stub] VIX 15.1: normal range",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 1.0,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (89.92) above SMA30 (87.85): uptrend"
+      },
+      "relative_strength_vs_spy": -0.015632136276501233,
+      "composite_score": 0.5375,
+      "volatility": 0.15195576966584354,
+      "notes": []
+    },
+    {
+      "symbol": "SPY",
+      "security_type": "index_etf",
+      "sector": "Broad Market",
+      "market_cap": null,
+      "last_price": 765.4199829101562,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (765.85) above SMA30 (761.79): uptrend",
+          "key_points": [
+            "SMA10 (765.85) above SMA30 (761.79): uptrend",
+            "RSI 36.0: neutral",
+            "10-bar momentum -0.5%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] P/E 25.8: fair value",
+          "key_points": [
+            "P/E 25.8: fair value"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.03158894752284807,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -0.2% expected move (dispersion 1.5%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -0.2% expected move (dispersion 1.5%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (765.85) above SMA30 (761.79): uptrend",
+        "bear_thesis": "[offline-stub] P/E 25.8: fair value",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.8878189367844952,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (765.85) above SMA30 (761.79): uptrend"
+      },
+      "relative_strength_vs_spy": 0.0,
+      "composite_score": 0.5327,
+      "volatility": 0.07403519546225674,
+      "notes": []
+    },
+    {
+      "symbol": "VOO",
+      "security_type": "index_etf",
+      "sector": "Broad Market",
+      "market_cap": null,
+      "last_price": 703.6300048828125,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (703.96) above SMA30 (700.24): uptrend",
+          "key_points": [
+            "SMA10 (703.96) above SMA30 (700.24): uptrend",
+            "RSI 35.9: neutral",
+            "10-bar momentum -0.5%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] P/E 25.8: fair value",
+          "key_points": [
+            "P/E 25.8: fair value"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.030403567208425967,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -0.2% expected move (dispersion 1.4%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -0.2% expected move (dispersion 1.4%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (703.96) above SMA30 (700.24): uptrend",
+        "bear_thesis": "[offline-stub] P/E 25.8: fair value",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.8915721097591217,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (703.96) above SMA30 (700.24): uptrend"
+      },
+      "relative_strength_vs_spy": 9.320279191159589e-05,
+      "composite_score": 0.5353,
+      "volatility": 0.07295733280439791,
+      "notes": []
+    },
+    {
+      "symbol": "VTI",
+      "security_type": "index_etf",
+      "sector": "Broad Market",
+      "market_cap": null,
+      "last_price": 377.0899963378906,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (377.87) above SMA30 (376.09): uptrend",
+          "key_points": [
+            "SMA10 (377.87) above SMA30 (376.09): uptrend",
+            "RSI 34.6: neutral",
+            "10-bar momentum -0.8%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] P/E 25.3: fair value",
+          "key_points": [
+            "P/E 25.3: fair value"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.04001657566989526,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -0.3% expected move (dispersion 1.6%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -0.3% expected move (dispersion 1.6%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (377.87) above SMA30 (376.09): uptrend",
+        "bear_thesis": "[offline-stub] P/E 25.3: fair value",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.8620196946417187,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (377.87) above SMA30 (376.09): uptrend"
+      },
+      "relative_strength_vs_spy": -0.0028986941180203785,
+      "composite_score": 0.5056,
+      "volatility": 0.07897667874221238,
+      "notes": []
+    },
+    {
+      "symbol": "QQQ",
+      "security_type": "index_etf",
+      "sector": "Large-Cap Growth",
+      "market_cap": null,
+      "last_price": 708.760009765625,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (712.35) above SMA30 (708.64): uptrend",
+          "key_points": [
+            "SMA10 (712.35) above SMA30 (708.64): uptrend",
+            "RSI 30.8: neutral",
+            "10-bar momentum -1.0%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "bearish",
+          "confidence": 0.2,
+          "summary": "[offline-stub] P/E 30.3: richly valued",
+          "key_points": [
+            "P/E 30.3: richly valued"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.053281345210319984,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -0.4% expected move (dispersion 2.5%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -0.4% expected move (dispersion 2.5%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (712.35) above SMA30 (708.64): uptrend",
+        "bear_thesis": "[offline-stub] P/E 30.3: richly valued",
+        "consensus_signal": "neutral",
+        "consensus_confidence": 0.09934800976798597,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (712.35) above SMA30 (708.64): uptrend"
+      },
+      "relative_strength_vs_spy": -0.005489261713083222,
+      "composite_score": -0.022,
+      "volatility": 0.12850156820984326,
+      "notes": []
+    },
+    {
+      "symbol": "DIA",
+      "security_type": "index_etf",
+      "sector": "Broad Market",
+      "market_cap": null,
+      "last_price": 530.8400268554688,
+      "analyst_reports": [
+        {
+          "agent_name": "technical_analyst",
+          "signal": "bullish",
+          "confidence": 0.25,
+          "summary": "[offline-stub] SMA10 (532.29) above SMA30 (531.34): uptrend",
+          "key_points": [
+            "SMA10 (532.29) above SMA30 (531.34): uptrend",
+            "RSI 40.2: neutral",
+            "10-bar momentum -0.6%"
+          ]
+        },
+        {
+          "agent_name": "fundamental_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] P/E 22.0: fair value",
+          "key_points": [
+            "P/E 22.0: fair value"
+          ]
+        },
+        {
+          "agent_name": "sentiment_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] No headlines available.",
+          "key_points": []
+        },
+        {
+          "agent_name": "macro_analyst",
+          "signal": "neutral",
+          "confidence": 0.0,
+          "summary": "[offline-stub] VIX 15.1: normal range",
+          "key_points": [
+            "VIX 15.1: normal range"
+          ]
+        },
+        {
+          "agent_name": "forecast_analyst",
+          "signal": "neutral",
+          "confidence": 0.10156935914587407,
+          "summary": "[offline-stub] heuristic 10-bar forecast: -0.7% expected move (dispersion 1.6%, n=1)",
+          "key_points": [
+            "heuristic 10-bar forecast: -0.7% expected move (dispersion 1.6%, n=1)"
+          ]
+        }
+      ],
+      "debate": {
+        "bull_thesis": "[offline-stub] SMA10 (532.29) above SMA30 (531.34): uptrend",
+        "bear_thesis": "[offline-stub] P/E 22.0: fair value",
+        "consensus_signal": "bullish",
+        "consensus_confidence": 0.7110972372773514,
+        "rationale": "[offline-stub] Bull case: [offline-stub] SMA10 (532.29) above SMA30 (531.34): uptrend"
+      },
+      "relative_strength_vs_spy": -0.0008630568965020732,
+      "composite_score": 0.4232,
+      "volatility": 0.08286934812932373,
+      "notes": []
+    }
+  ],
+  "exits": [],
+  "entries": [],
+  "open_positions": [
+    {
+      "symbol": "CRM",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 257.5400085449219,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (220.28) above SMA30 (196.36): uptrend Relative strength vs SPY (10-bar): +35.6%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "ADBE",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 292.7900085449219,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (278.02) above SMA30 (259.64): uptrend Relative strength vs SPY (10-bar): +16.0%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "MRK",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 147.75999450683594,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (149.48) above SMA30 (136.85): uptrend Relative strength vs SPY (10-bar): +9.4%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "NFLX",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 81.05000305175781,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend Relative strength vs SPY (10-bar): +7.3%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "V",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 379.3699951171875,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (375.76) above SMA30 (366.77): uptrend Relative strength vs SPY (10-bar): +6.4%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    }
+  ],
+  "scoreboard": [
+    {
+      "symbol": "CRM",
+      "entry_date": "2026-09-01",
+      "entry_price": 257.5400085449219,
+      "current_price": 258.4649963378906,
+      "position_return_pct": 0.0035916275618488314,
+      "benchmark_return_pct": -0.0021250308438208743,
+      "alpha_pct": 0.005716658405669706,
+      "weight_pct": 0.11575249875739912,
+      "shares": 44,
+      "allocated_value": 11372.459838867188
+    },
+    {
+      "symbol": "ADBE",
+      "entry_date": "2026-09-01",
+      "entry_price": 292.7900085449219,
+      "current_price": 280.9599914550781,
+      "position_return_pct": -0.04040444258543985,
+      "benchmark_return_pct": -0.0021250308438208743,
+      "alpha_pct": -0.038279411741618974,
+      "weight_pct": 0.17648222623825152,
+      "shares": 62,
+      "allocated_value": 17419.519470214844
+    },
+    {
+      "symbol": "MRK",
+      "entry_date": "2026-09-01",
+      "entry_price": 147.75999450683594,
+      "current_price": 151.7100067138672,
+      "position_return_pct": 0.026732622860570654,
+      "benchmark_return_pct": -0.0021250308438208743,
+      "alpha_pct": 0.028857653704391528,
+      "weight_pct": 0.1191180605394993,
+      "shares": 78,
+      "allocated_value": 11833.38052368164
+    },
+    {
+      "symbol": "NFLX",
+      "entry_date": "2026-09-01",
+      "entry_price": 81.05000305175781,
+      "current_price": 82.5999984741211,
+      "position_return_pct": 0.019123940333148015,
+      "benchmark_return_pct": -0.0021250308438208743,
+      "alpha_pct": 0.02124897117696889,
+      "weight_pct": 0.22075586051036217,
+      "shares": 267,
+      "allocated_value": 22054.199592590332
+    },
+    {
+      "symbol": "V",
+      "entry_date": "2026-09-01",
+      "entry_price": 379.3699951171875,
+      "current_price": 379.4750061035156,
+      "position_return_pct": 0.0002768036156779452,
+      "benchmark_return_pct": -0.0021250308438208743,
+      "alpha_pct": 0.0024018344594988195,
+      "weight_pct": 0.367891353954488,
+      "shares": 96,
+      "allocated_value": 36429.6005859375
+    }
+  ],
+  "cio_rationale": "- Step 1 (Universe screen, upstream): 40 candidates cleared the full eligibility rubric — NYSE/AMEX/NASDAQ-listed stock, ADR, or ETF; no open-end mutual funds; no raw index tickers; price > $5.00; market cap > $2B for stocks (well above the $500M rubric floor, per the 'no small-cap' mandate) or AUM > $500M for ETFs.\n- Step 2 (Exclude already-held names): 35 of 40 candidates remain after removing 5 symbol(s) already in the open basket (rotation, not duplication).\n- Step 3 (Directional filter): 18 of 35 candidates carry a net-bullish committee consensus (technical + fundamental + sentiment + macro + forecast desks, weighted by each desk's own confidence) for the 2-3 month horizon.\n- Step 4 (Rank by composite conviction): candidates ranked by a composite score blending (a) the weighted analyst-desk consensus and (b) 10-bar relative strength vs. SPY, since the OKR is outperformance, not just a positive return.\n- Step 5 (Diversification cap): max 2 new picks per sector, filling 0 of 0 open slot(s).\n- Step 6 (Floor check): minimum basket size of 2 already met, no relaxation needed.\n\nCIO summary: [offline-stub] No new names met the bar this run; holding the existing basket unchanged.",
+  "okr_summary": "Basket-average alpha vs SPY across 5 open position(s): +0.40pp (OKR target: +10-15pp or better over each position's 2-3 month hold)."
+}
