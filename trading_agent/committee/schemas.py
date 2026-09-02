@@ -25,6 +25,7 @@ class CandidateAssessment:
     debate: ResearchDebateResult
     relative_strength_vs_spy: float | None  # 10-bar momentum spread vs SPY
     composite_score: float  # -1..1, code-computed, never LLM-set
+    volatility: float | None = None  # annualized stdev of daily returns; the risk term in position sizing
     notes: list[str] = field(default_factory=list)
 
 

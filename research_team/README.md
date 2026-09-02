@@ -103,23 +103,49 @@ a one-time backtest number.
 `PORTFOLIO_CAPITAL_USD` (`committee/performance_tracker.py`, $100,000 by
 default — illustrative paper capital, no real money anywhere in this
 codebase; override with `TRADING_AGENT_COMMITTEE_CAPITAL_USD`) is split
-**equally across whichever positions are actually open right now** —
-`capital_per_position = PORTFOLIO_CAPITAL_USD / len(open_positions)` — not
-a fixed 1/5 per slot. A basket holding 2 high-conviction names puts 50%
-of capital into each; a full 5-name basket puts 20% into each. The
-mandate's "2-5 names, not necessarily 5" is enforced here, not just at
-the picking stage: nothing sits idle in an unfilled slot just because the
-committee chose not to fill it.
+across whichever positions are actually open right now — never a fixed
+1/5 per slot, and, since this rewrite, **never a flat equal split either.**
+Each name's weight is `(conviction / realized volatility)`, normalized
+across the open basket:
 
-This is a **live snapshot, not a buy-and-hold share count**: shares and
-dollar amounts are recomputed fresh every run from that run's current
-price (`shares = floor(capital_per_position / current_price)`), so the
-allocation table always reflects "if fully deployed today," independent
-of the alpha/return figures above (which correctly track performance
-since each position's actual entry price, unaffected by this). Every
-day's report and the dashboard artifact both show this breakdown:
-symbol, weight, shares, current price, and market value, plus totals
-(capital, invested, % deployed, and the small cash residue from
+```
+weight_i = (conviction_i / volatility_i) / Σ (conviction_j / volatility_j)
+```
+
+* **Conviction** is that name's composite score from its most recent
+  re-underwriting this run — the same number `PortfolioManager` ranks
+  candidates by (`committee/daily_report.py`'s `held_assessments`, floored
+  at 0.10 so a merely-neutral holding still gets a small stake instead of
+  ~0).
+* **Volatility** is the annualized stdev of its last 20 daily returns
+  (`data/indicators.volatility`, floored at 5%/yr, defaulting to 25%/yr
+  for a name this run couldn't price/re-underwrite at all) — the risk
+  term. Two names with identical conviction don't get identical dollars if
+  one is meaningfully more volatile than the other; the calmer name gets
+  more, the same "signal over risk" idea real risk-parity and
+  vol-targeting position sizing use. This is what actually answers "are
+  the agents making a decision" about sizing, not just about which names
+  to hold — previously this table was a flat 1/N regardless of any
+  analyst signal, which was a real gap against basic portfolio theory,
+  not a deliberate design choice.
+
+A basket holding 2 high-conviction, low-vol names will end up far more
+concentrated than a 50/50 split; a 5-name basket with mixed conviction
+and risk won't be a flat 20% each either. The mandate's "2-5 names, not
+necessarily 5" still holds at the picking stage (nothing sits idle in an
+unfilled slot the committee chose not to fill) — sizing now compounds
+that with a second, independent signal.
+
+This is a **live snapshot, not a buy-and-hold share count**: weights,
+shares, and dollar amounts are recomputed fresh every run from that
+run's current conviction/volatility/price, so the allocation table always
+reflects "if fully deployed today, at today's read on each name," not a
+number carried from entry. It's deliberately kept independent of the
+alpha/return figures above, which correctly track performance since each
+position's actual entry price regardless of how sizing has moved since.
+Every day's report and the dashboard artifact both show the full
+breakdown: symbol, weight, shares, current price, and market value, plus
+totals (capital, invested, % deployed, and the small cash residue from
 whole-share rounding).
 
 ## The 9/7 window

@@ -20,12 +20,31 @@ DEFAULT_STATE_PATH = os.environ.get(
 )
 
 # Paper capital the allocation table below is sized against — illustrative
-# only, no real money anywhere in this codebase. Split equally across
-# however many positions are actually open (2-5, per the mandate), not a
-# fixed 1/5 per slot: a basket that holds fewer, higher-conviction names
+# only, no real money anywhere in this codebase. Split across however many
+# positions are actually open (2-5, per the mandate) weighted by conviction
+# and inverse volatility (see build_scoreboard) rather than a fixed 1/5 or
+# flat equal split: a basket that holds fewer, higher-conviction names
 # deploys the same capital more heavily into each rather than sitting on
-# uninvested cash for slots the committee chose not to fill.
+# uninvested cash for slots the committee chose not to fill, and within a
+# basket, higher-conviction/lower-risk names get more than lower-conviction/
+# higher-risk ones — the same "signal over risk" idea real risk-parity and
+# vol-targeting sizing methods use, not an LLM guessing dollar amounts.
 PORTFOLIO_CAPITAL_USD = float(os.environ.get("TRADING_AGENT_COMMITTEE_CAPITAL_USD", "100000"))
+
+# Composite scores range roughly -1..1; a held position is never actually
+# bearish (it would have been closed), but can be only mildly bullish or
+# neutral — floor it so a soft-conviction name still gets a small stake
+# instead of being sized to ~zero.
+_CONVICTION_FLOOR = 0.10
+
+# Annualized-volatility floor/fallback, as a fraction (0.05 = 5%/yr). Floors
+# guard against a near-zero realized-vol name (thin data, holiday-shortened
+# window) swamping the whole allocation; the fallback covers a name build_
+# scoreboard has no volatility estimate for at all (e.g. this run's price
+# fetch failed for it) with a typical-large-cap-equity figure rather than
+# guessing zero risk.
+_VOLATILITY_FLOOR_PCT = 0.05
+_DEFAULT_VOLATILITY_PCT = 0.25
 
 
 def load_state(path: str = DEFAULT_STATE_PATH) -> PortfolioState:
@@ -57,19 +76,42 @@ def alpha_pct(entry_price: float, current_price: float, benchmark_entry: float, 
     return position_return - benchmark_return
 
 
-def build_scoreboard(state: PortfolioState, current_prices: dict[str, float], spy_current: float) -> list[dict]:
+def build_scoreboard(
+    state: PortfolioState,
+    current_prices: dict[str, float],
+    spy_current: float,
+    conviction_by_symbol: dict[str, float] | None = None,
+    volatility_by_symbol: dict[str, float] | None = None,
+) -> list[dict]:
+    """Marks every open position to market and sizes it against
+    `PORTFOLIO_CAPITAL_USD`, weighted by `conviction / volatility` and
+    normalized to sum to 1 across the open basket — a live snapshot ("if
+    fully deployed today" at today's weights), not a buy-and-hold share
+    count carried from each position's entry date. The alpha/return fields
+    below are what track true since-entry performance, independent of this
+    sizing. `conviction_by_symbol`/`volatility_by_symbol` are optional —
+    omitted or missing entries fall back to the floor/default constants
+    above, which collapses to a flat equal split when no signal is given
+    for any held name (e.g. a caller that hasn't wired conviction data
+    through yet), rather than crashing.
+    """
+    conviction_by_symbol = conviction_by_symbol or {}
+    volatility_by_symbol = volatility_by_symbol or {}
     priced_open = [p for p in state.open_positions if current_prices.get(p.symbol) is not None]
-    # Equal-weight target allocation of PORTFOLIO_CAPITAL_USD across whichever
-    # positions are actually open right now (see the constant's docstring) —
-    # a live snapshot ("if fully deployed today"), not a buy-and-hold share
-    # count carried from each position's entry date; the alpha/return fields
-    # above are what track true since-entry performance, independent of this.
-    capital_per_position = PORTFOLIO_CAPITAL_USD / len(priced_open) if priced_open else 0.0
+
+    raw_weights: dict[str, float] = {}
+    for p in priced_open:
+        conviction = max(conviction_by_symbol.get(p.symbol, _CONVICTION_FLOOR), _CONVICTION_FLOOR)
+        vol = max(volatility_by_symbol.get(p.symbol, _DEFAULT_VOLATILITY_PCT), _VOLATILITY_FLOOR_PCT)
+        raw_weights[p.symbol] = conviction / vol
+    total_raw = sum(raw_weights.values()) or 1.0
 
     rows = []
     for p in priced_open:
         current = current_prices[p.symbol]
-        shares = int(capital_per_position // current)
+        weight = raw_weights[p.symbol] / total_raw
+        capital_for_position = PORTFOLIO_CAPITAL_USD * weight
+        shares = int(capital_for_position // current)
         allocated_value = shares * current
         rows.append(
             {
@@ -80,7 +122,7 @@ def build_scoreboard(state: PortfolioState, current_prices: dict[str, float], sp
                 "position_return_pct": current / p.entry_price - 1.0,
                 "benchmark_return_pct": spy_current / p.benchmark_entry_price - 1.0,
                 "alpha_pct": alpha_pct(p.entry_price, current, p.benchmark_entry_price, spy_current),
-                "weight_pct": 1.0 / len(priced_open),
+                "weight_pct": weight,
                 "shares": shares,
                 "allocated_value": allocated_value,
             }
