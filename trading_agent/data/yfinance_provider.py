@@ -19,6 +19,8 @@ error (see agents/analysts.py's `if x is not None` guards).
 """
 from __future__ import annotations
 
+import math
+
 from trading_agent.data.providers import Bar, MarketSnapshot
 
 _INSTALL_HINT = "yfinance가 설치되어 있지 않습니다. 설치하려면:\n  pip install -r requirements-live.txt"
@@ -82,6 +84,13 @@ class YFinanceFeed:
                 f"확인하세요 (예: SK하이닉스는 '000660.KS', 애플은 'AAPL')."
             )
 
+        # Yahoo occasionally serves a NaN OHLC for one bar (a halted-trading
+        # day, today's session not fully posted yet at fetch time) — a NaN
+        # close is unusable data, not a usable price of zero or anything
+        # else, and `MarketSnapshot.last_price`/`.closes` have no way to
+        # flag it once it's in a Bar. Drop those bars here, at the one place
+        # real data enters the system, rather than patching every
+        # downstream consumer of last_price/closes against it.
         bars = [
             Bar(
                 timestamp=int(ts.timestamp()),
@@ -92,7 +101,13 @@ class YFinanceFeed:
                 volume=float(row.Volume),
             )
             for ts, row in history.iterrows()
+            if math.isfinite(row.Open) and math.isfinite(row.High) and math.isfinite(row.Low) and math.isfinite(row.Close)
         ]
+        if not bars:
+            raise RuntimeError(
+                f"'{symbol}'에 대한 유효한(NaN이 아닌) 시세 데이터를 찾을 수 없습니다 — 모든 봉이 "
+                "결측치였습니다."
+            )
 
         fundamentals = self._fetch_fundamentals(ticker)
         headlines = self._fetch_headlines(ticker)
