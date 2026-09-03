@@ -8,6 +8,7 @@ the pipeline's shape intact when a real forecasting model isn't wired in.
 """
 from __future__ import annotations
 
+import math
 from statistics import pstdev
 
 from trading_agent.forecast.base import ForecastResult
@@ -23,7 +24,20 @@ class HeuristicForecaster:
             return ForecastResult([last] * pred_len, 0.0, 0.0, 1, "heuristic")
 
         window = closes[-self._lookback :]
-        returns = [window[i] / window[i - 1] - 1 for i in range(1, len(window))]
+        # A real data feed occasionally hands back a NaN/zero close (a
+        # halted-trading day, a gap in the provider's history) — one bad
+        # bar must not crash the whole forecast (and, upstream, the whole
+        # daily cycle). Drop any bar pair that can't produce a finite
+        # return rather than letting inf/nan poison drift/volatility (and
+        # crash statistics.pstdev, which chokes on non-finite input).
+        returns = [
+            window[i] / window[i - 1] - 1
+            for i in range(1, len(window))
+            if window[i - 1] != 0 and math.isfinite(window[i]) and math.isfinite(window[i - 1])
+        ]
+        if not returns:
+            last = closes[-1] if closes else 0.0
+            return ForecastResult([last] * pred_len, 0.0, 0.0, 1, "heuristic")
         drift = sum(returns) / len(returns)
         volatility = pstdev(returns) if len(returns) > 1 else 0.0
 

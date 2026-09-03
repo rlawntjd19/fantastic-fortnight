@@ -75,3 +75,26 @@ def test_offline_run_never_crashes_with_no_llm_or_network():
     report = _run()
     assert report.run_date == "2026-08-31"
     assert report.universe_size > 0
+
+
+def test_one_symbols_analysis_crashing_does_not_kill_the_whole_run(monkeypatch):
+    # A real crash happened in production from a bad data point deep inside
+    # one symbol's analysis (a NaN close reaching statistics.pstdev) taking
+    # down an entire live run. That specific bug is fixed at its source
+    # (forecast/heuristic_forecaster.py, data/indicators.py), but this is
+    # the "one bad symbol must not kill the whole run" guarantee itself,
+    # independent of any one root cause.
+    import trading_agent.committee.daily_report as daily_report_module
+
+    real_assess = daily_report_module.assess_symbol
+
+    def _flaky_assess(entry, snapshot, spy_momentum, analysts, research_manager):
+        if entry.symbol == "AAPL":
+            raise ValueError("synthetic failure for this test")
+        return real_assess(entry, snapshot, spy_momentum, analysts, research_manager)
+
+    monkeypatch.setattr(daily_report_module, "assess_symbol", _flaky_assess)
+
+    report = _run()
+    assert any("AAPL" in note and "failed" in note for note in report.screened_out)
+    assert len(report.open_positions) == 3  # basket still fills from the rest of the universe

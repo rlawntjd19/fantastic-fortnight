@@ -184,7 +184,11 @@ def run_daily_cycle(
 
         if entry is None:
             continue  # held name fell out of the static universe table; still tracked, just not re-underwritten
-        assessment = assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager)
+        try:
+            assessment = assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager)
+        except Exception as exc:  # noqa: BLE001 - one bad symbol's analysis must not kill the whole run
+            screened_out.append(f"{position.symbol}: re-underwriting failed ({exc}); kept at last known price")
+            continue
 
         days_held = (run_date - dt.date.fromisoformat(position.entry_date)).days
         thesis_broke = assessment.debate.consensus_signal == Signal.BEARISH
@@ -226,7 +230,11 @@ def run_daily_cycle(
                 continue
 
             current_prices.setdefault(entry.symbol, snapshot.last_price)
-            candidates.append(assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager))
+            try:
+                candidates.append(assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager))
+            except Exception as exc:  # noqa: BLE001 - one bad symbol's analysis must not kill the whole run
+                screened_out.append(f"{entry.symbol}: analysis failed ({exc})")
+                continue
 
     slots_open = max(0, LIVE_MAX_PICKS - len(state.open_positions))
     new_picks, cio_rationale = cio.select(candidates, held_symbols, slots_open) if window_open else (
