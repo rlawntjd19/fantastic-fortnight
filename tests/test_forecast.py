@@ -34,6 +34,32 @@ def test_heuristic_forecaster_handles_too_little_data():
     assert result.expected_return == 0.0
 
 
+def test_heuristic_forecaster_ignores_a_nan_close_instead_of_crashing():
+    # A real feed occasionally hands back NaN for a halted-trading day or a
+    # gap in its history. statistics.pstdev crashes with an opaque
+    # AttributeError on any non-finite input (verified directly against
+    # CPython 3.11's implementation), so the forecaster must filter these
+    # out itself rather than trust every close is usable.
+    closes = ([100.0, 101.0, float("nan"), 103.0] * 6)[:25]
+    result = HeuristicForecaster().forecast(closes, pred_len=5)
+    assert len(result.predicted_closes) == 5
+    assert all(p == p for p in result.predicted_closes)  # no NaN leaked into the output
+
+
+def test_heuristic_forecaster_ignores_an_inf_close_instead_of_crashing():
+    closes = ([100.0, 101.0, float("inf"), 103.0] * 6)[:25]
+    result = HeuristicForecaster().forecast(closes, pred_len=5)
+    assert len(result.predicted_closes) == 5
+    assert all(p == p and abs(p) != float("inf") for p in result.predicted_closes)
+
+
+def test_heuristic_forecaster_all_non_finite_closes_falls_back_flat():
+    closes = [float("nan")] * 25
+    result = HeuristicForecaster().forecast(closes, pred_len=5)
+    assert result.expected_return == 0.0
+    assert result.dispersion == 0.0
+
+
 def test_forecast_analyst_produces_bullish_report_on_uptrend():
     closes = [100.0 * (1.02**i) for i in range(30)]
 

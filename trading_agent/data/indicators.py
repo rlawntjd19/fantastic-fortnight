@@ -5,6 +5,8 @@ zero hard runtime dependencies beyond the optional `anthropic` client.
 """
 from __future__ import annotations
 
+import math
+
 
 def sma(values: list[float], window: int) -> float | None:
     """Simple moving average of the last `window` values."""
@@ -33,9 +35,10 @@ def momentum(values: list[float], window: int) -> float | None:
     if len(values) < window + 1:
         return None
     base = values[-window - 1]
-    if base == 0:
+    latest = values[-1]
+    if base == 0 or not math.isfinite(base) or not math.isfinite(latest):
         return None
-    return (values[-1] - base) / base
+    return (latest - base) / base
 
 
 def volatility(values: list[float], window: int = 20) -> float | None:
@@ -49,10 +52,13 @@ def volatility(values: list[float], window: int = 20) -> float | None:
     """
     if len(values) < window + 1:
         return None
+    # A NaN close (data gap, halted-trading day) must not silently poison
+    # the whole estimate — `values[i-1] != 0` alone lets NaN through (NaN
+    # is never equal to 0), so filter for finiteness explicitly too.
     changes = [
         (values[i] - values[i - 1]) / values[i - 1]
         for i in range(len(values) - window, len(values))
-        if values[i - 1] != 0
+        if values[i - 1] != 0 and math.isfinite(values[i]) and math.isfinite(values[i - 1])
     ]
     if len(changes) < 2:
         return None
