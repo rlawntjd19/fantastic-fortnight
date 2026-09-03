@@ -9,6 +9,8 @@ here) — these tests instead lock in that our parsing degrades gracefully
 around whatever `ticker.info` / `ticker.recommendations` / `ticker.news`
 actually return.
 """
+import math
+
 import pytest
 
 from trading_agent.data.yfinance_provider import YFinanceFeed
@@ -188,3 +190,41 @@ def test_get_snapshot_raises_on_empty_history(monkeypatch):
     feed = YFinanceFeed()
     with pytest.raises(RuntimeError, match="시세 데이터를 찾을 수 없습니다"):
         feed.get_snapshot("NOTATICKER")
+
+
+def test_get_snapshot_drops_a_nan_bar_instead_of_exposing_it(monkeypatch):
+    # Reproduces a real production incident: Yahoo served a NaN close for
+    # the most recent bar of a held position, which flowed straight into
+    # MarketSnapshot.last_price -> performance_tracker.build_scoreboard's
+    # `int(capital_for_position // current)`, crashing the whole live run
+    # with "ValueError: cannot convert float NaN to integer". A NaN bar
+    # must never reach a Bar/MarketSnapshot at all.
+    nan = float("nan")
+    captured = {}
+    _install_fake_yfinance(
+        monkeypatch,
+        captured,
+        _FakeHistory(
+            [
+                (1700000000, 100.0, 101.0, 99.0, 100.5, 1000.0),
+                (1700086400, nan, nan, nan, nan, nan),  # today's bar, not yet fully posted
+            ]
+        ),
+    )
+
+    feed = YFinanceFeed()
+    snapshot = feed.get_snapshot("AAPL")
+
+    assert len(snapshot.bars) == 1  # the NaN bar was dropped, not kept
+    assert snapshot.last_price == 100.5
+    assert math.isfinite(snapshot.last_price)
+
+
+def test_get_snapshot_raises_when_every_bar_is_nan(monkeypatch):
+    nan = float("nan")
+    captured = {}
+    _install_fake_yfinance(monkeypatch, captured, _FakeHistory([(1700000000, nan, nan, nan, nan, nan)]))
+
+    feed = YFinanceFeed()
+    with pytest.raises(RuntimeError, match="결측치"):
+        feed.get_snapshot("AAPL")

@@ -10,6 +10,7 @@ the repo's history.
 from __future__ import annotations
 
 import json
+import math
 import os
 from dataclasses import asdict
 
@@ -116,7 +117,17 @@ def build_scoreboard(
     """
     conviction_by_symbol = conviction_by_symbol or {}
     volatility_by_symbol = volatility_by_symbol or {}
-    priced_open = [p for p in state.open_positions if current_prices.get(p.symbol) is not None]
+    # `current_prices.get(...) is not None` alone lets a NaN price through
+    # (a real incident: one bad bar from the live feed reached this dict
+    # and crashed `int(capital_for_position // current)` outright) — a
+    # position with an unusable price is exactly as unpriced as one
+    # missing from the dict entirely, so treat it the same way: skip it
+    # here rather than let it corrupt the whole scoreboard.
+    priced_open = [
+        p
+        for p in state.open_positions
+        if current_prices.get(p.symbol) is not None and math.isfinite(current_prices[p.symbol]) and current_prices[p.symbol] > 0
+    ]
     weights = compute_weights([p.symbol for p in priced_open], conviction_by_symbol, volatility_by_symbol)
 
     rows = []

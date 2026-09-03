@@ -107,3 +107,29 @@ def test_missing_signal_for_one_name_falls_back_to_floor_and_default():
 
 def test_empty_basket_has_no_scoreboard_rows():
     assert build_scoreboard(PortfolioState(), {}, spy_current=500.0) == []
+
+
+def test_nan_current_price_is_excluded_not_crashed_on():
+    # Real production incident: a NaN price reaching build_scoreboard
+    # crashed `int(capital_for_position // current)` outright
+    # (ValueError: cannot convert float NaN to integer). A NaN/non-finite
+    # price is exactly as unusable as one missing from current_prices
+    # entirely, so it must be excluded the same way, not crash the whole
+    # scoreboard.
+    state = PortfolioState(positions=[_position("GOOD", 100.0), _position("BAD", 100.0)])
+    prices = {"GOOD": 100.0, "BAD": float("nan")}
+
+    rows = build_scoreboard(state, prices, spy_current=500.0)
+
+    assert len(rows) == 1
+    assert rows[0]["symbol"] == "GOOD"
+
+
+def test_non_positive_current_price_is_excluded_not_crashed_on():
+    state = PortfolioState(positions=[_position("GOOD", 100.0), _position("ZERO", 100.0)])
+    prices = {"GOOD": 100.0, "ZERO": 0.0}
+
+    rows = build_scoreboard(state, prices, spy_current=500.0)
+
+    assert len(rows) == 1
+    assert rows[0]["symbol"] == "GOOD"
