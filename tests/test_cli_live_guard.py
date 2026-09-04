@@ -41,6 +41,13 @@ def test_live_run_proceeds_when_provider_is_really_live(tmp_path, monkeypatch):
         "build_macro_provider",
         lambda config: __import__("trading_agent.data.macro", fromlist=["StaticMacroProvider"]).StaticMacroProvider(),
     )
+    # Otherwise --live's real config.live_data.enabled=True makes this
+    # reach the real build_seasonal_history_provider(), which (since
+    # yfinance is actually installed here) returns a real YFinanceFeed and
+    # tries real network for SeasonalityAnalyst's long-history fetch —
+    # every other live-data seam in this test is faked, this one must be
+    # too.
+    monkeypatch.setattr(cli_module, "build_seasonal_history_provider", lambda config: None)
 
     exit_code = main(["daily-picks", "--live", "--date", "2026-09-02"])
 

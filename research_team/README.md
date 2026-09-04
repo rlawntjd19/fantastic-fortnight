@@ -41,13 +41,17 @@ else in this project.
 | Sentiment analyst | `agents.analysts.SentimentAnalyst` | Recent headlines |
 | Macro analyst | `agents.analysts.MacroAnalyst` | 10Y yield, VIX, dollar index |
 | Forecast analyst | `agents.analysts.ForecastAnalyst` | Heuristic (or Kronos, if installed) price-path forecast |
+| Seasonality analyst | `agents.analysts.SeasonalityAnalyst` | This symbol's own real multi-year win-rate from about now through year-end (live runs only — see below) |
 | Research manager | `agents.researchers.ResearchManager` | Bull/bear debate → one consensus signal per symbol |
 | **Portfolio manager (CIO)** | `committee.portfolio_manager.PortfolioManager` | Ranks every symbol's consensus into the final basket (fixed at 3 names live; configurable for backtesting) |
 
-The first six are reused unchanged from `trading_agent/agents/` — this
-module is a portfolio-level layer on top of the same per-symbol research
-pipeline the rest of the repo uses for single-symbol trade decisions,
-not a rewrite of it.
+The first five desks plus the research manager live in
+`trading_agent/agents/` and are reused unchanged — this module is a
+portfolio-level layer on top of the same per-symbol research pipeline the
+rest of the repo uses for single-symbol trade decisions, not a rewrite of
+it. The seasonality desk is new (added to widen the signal set toward the
+2-3 month Sep-Dec window this basket is actually running in) — see the
+dedicated section below for how it works and why it's live-only.
 
 ## Chain of thought: how the CIO picks
 
@@ -82,11 +86,56 @@ composite_score = 0.6 * desk_consensus_component + 0.4 * relative_strength_compo
 * `desk_consensus_component` = consensus direction × consensus confidence ×
   (0.5 + 0.5 × cross-desk agreement fraction) — the same weighted-vote math
   `ResearchManager` already uses, with an extra bonus/penalty for how many
-  of the five desks actually agree with the consensus direction.
+  of the desks (five, or six when the seasonality desk has a real read
+  that run) actually agree with the consensus direction.
 * `relative_strength_component` = the symbol's 10-bar momentum minus SPY's
   10-bar momentum, clamped to ±1 at a ±10pp spread — this is what points
   the whole process at *outperformance* specifically, not just "is this
   going up."
+
+## Seasonality: a sixth desk, only where real evidence exists
+
+There's a well-documented family of calendar anomalies in academic
+finance — the "Halloween effect"/Nov-Apr seasonality (Bouman & Jacobsen,
+2002), the January effect (largely tax-loss-selling reversal), the Santa
+Claus rally, year-end institutional window dressing — real, replicated
+patterns in aggregate market data that don't have one fully agreed-upon
+cause. Since this basket's whole mandate is a Sep-Dec-ish 2-3 month hold,
+that window lines up with exactly the part of the calendar those effects
+describe, so it's worth checking for — but only as *real evidence about
+each specific name*, never as inherited market lore about "stocks that
+do well in Q4."
+
+`agents.analysts.SeasonalityAnalyst` computes, per candidate, that
+symbol's *own* historical return from about today's date through that
+year's Dec 31, across every past year with real price data available —
+never a hardcoded ticker list, never a claim not backed by that symbol's
+actual bars:
+
+* Needs **at least 4 qualifying past years** of real, calendar-dated
+  price history to say anything at all; below that it reports neutral at
+  zero confidence, the same "not enough signal" degrade every other desk
+  uses for missing data — a 2-3 year sample is noise, not evidence.
+* Bullish only when **≥70% of qualifying years were positive** and the
+  average return is positive too (bearish is the mirror case); anything
+  softer than that reports neutral rather than overclaiming a weak
+  tendency.
+* Confidence is capped well below the other desks' ceiling (0.6 vs. 1.0)
+  — a historical calendar tendency is real evidence that it *can* repeat,
+  not a guarantee that it *will*: it can already be priced in by other
+  market participants, or simply not recur this particular year.
+
+This needs real multi-year calendar-dated history, which the offline
+`SimulatedFeed` used by every test and by `committee.backtest` cannot
+provide (its bar timestamps are sequential indices, not real dates) — so
+the desk is live-data-only. `data/factory.build_seasonal_history_provider`
+fetches a separate ~10-year window per symbol (`TRADING_AGENT_SEASONAL_
+LOOKBACK_PERIOD`, default `10y`) purely for this desk; the other five
+desks are unaffected and keep seeing their normal short window. Offline,
+`committee.backtest`, and every existing test all pass a `seasonal_
+provider=None` (the default) and the desk reports neutral at zero
+confidence every time — a mathematical no-op in `ResearchManager.debate`'s
+weighted vote, not a degraded run.
 
 ## Tracking the OKR
 
@@ -276,7 +325,7 @@ from the Actions tab and the report lands in `research_team/backtest/`.
 ## Tests
 
 ```bash
-pytest tests/test_committee.py tests/test_committee_backtest.py tests/test_report_validation.py tests/test_report_validation_guard.py
+pytest tests/test_committee.py tests/test_committee_backtest.py tests/test_report_validation.py tests/test_report_validation_guard.py tests/test_seasonality.py
 ```
 
 Fully offline (`SimulatedFeed`/synthetic price series + `DummyLLMClient` +

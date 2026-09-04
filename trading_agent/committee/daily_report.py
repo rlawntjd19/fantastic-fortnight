@@ -26,6 +26,7 @@ import datetime as dt
 from trading_agent.agents.analysts import (
     FundamentalAnalyst,
     MacroAnalyst,
+    SeasonalityAnalyst,
     SentimentAnalyst,
     TechnicalAnalyst,
     ForecastAnalyst,
@@ -101,6 +102,8 @@ def assess_symbol(
     spy_momentum: float | None,
     analysts: dict,
     research_manager: ResearchManager,
+    seasonal_snapshot=None,
+    as_of: dt.date | None = None,
 ) -> CandidateAssessment:
     reports = [
         analysts["technical"].analyze(snapshot),
@@ -109,6 +112,15 @@ def assess_symbol(
         analysts["macro"].analyze(snapshot),
         analysts["forecast"].analyze(snapshot),
     ]
+    # Optional 6th desk: real, per-symbol calendar-seasonality evidence
+    # (see SeasonalityAnalyst). Only present for callers that wire it in
+    # (the live daily_report pipeline, below) — `committee.backtest`
+    # deliberately doesn't build one, keeping its already-validated
+    # basket-size evidence untouched. `seasonal_snapshot=None` degrades to
+    # a neutral, zero-confidence vote, which is a no-op in
+    # ResearchManager.debate's weighted average.
+    if "seasonality" in analysts and as_of is not None:
+        reports.append(analysts["seasonality"].analyze(seasonal_snapshot, as_of))
     debate = research_manager.debate(reports)
 
     symbol_momentum = momentum(snapshot.closes, 10)
@@ -138,10 +150,21 @@ def run_daily_cycle(
     forecaster: PriceForecaster,
     state,
     run_date: dt.date | None = None,
+    seasonal_provider: MarketDataProvider | None = None,
 ) -> CommitteeReport:
     """Runs one day's cycle against `state` (mutated in place) and returns
     the report to render. Caller is responsible for persisting `state`
-    afterwards (see `performance_tracker.save_state`)."""
+    afterwards (see `performance_tracker.save_state`).
+
+    `seasonal_provider`, when given, is a `MarketDataProvider` configured
+    for a long (multi-year) history window — a separate fetch from
+    `provider`'s normal short window, feeding `SeasonalityAnalyst` real
+    calendar-dated bars to compute each symbol's own historical
+    year-end tendency from (see `data/factory.build_seasonal_history_provider`).
+    `None` (the default; every non-live caller, including `committee.backtest`
+    and the test suite) simply runs without that desk's signal — a no-op,
+    not a degraded run.
+    """
     run_date = run_date or dt.date.today()
     window_open = run_date <= RESEARCH_WINDOW_END
 
@@ -151,7 +174,16 @@ def run_daily_cycle(
         "sentiment": SentimentAnalyst(llm),
         "macro": MacroAnalyst(llm, macro_provider),
         "forecast": ForecastAnalyst(llm, forecaster),
+        "seasonality": SeasonalityAnalyst(llm),
     }
+
+    def _seasonal_snapshot(symbol: str):
+        if seasonal_provider is None:
+            return None
+        try:
+            return seasonal_provider.get_snapshot(symbol)
+        except Exception:  # noqa: BLE001 - one bad symbol's long-history fetch must not kill the run
+            return None
     research_manager = ResearchManager(llm)
     cio = PortfolioManager(llm, min_picks=LIVE_MIN_PICKS, max_picks=LIVE_MAX_PICKS)
 
@@ -185,7 +217,15 @@ def run_daily_cycle(
         if entry is None:
             continue  # held name fell out of the static universe table; still tracked, just not re-underwritten
         try:
-            assessment = assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager)
+            assessment = assess_symbol(
+                entry,
+                snapshot,
+                spy_momentum,
+                analysts,
+                research_manager,
+                seasonal_snapshot=_seasonal_snapshot(position.symbol),
+                as_of=run_date,
+            )
         except Exception as exc:  # noqa: BLE001 - one bad symbol's analysis must not kill the whole run
             screened_out.append(f"{position.symbol}: re-underwriting failed ({exc}); kept at last known price")
             continue
@@ -231,7 +271,17 @@ def run_daily_cycle(
 
             current_prices.setdefault(entry.symbol, snapshot.last_price)
             try:
-                candidates.append(assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager))
+                candidates.append(
+                    assess_symbol(
+                        entry,
+                        snapshot,
+                        spy_momentum,
+                        analysts,
+                        research_manager,
+                        seasonal_snapshot=_seasonal_snapshot(entry.symbol),
+                        as_of=run_date,
+                    )
+                )
             except Exception as exc:  # noqa: BLE001 - one bad symbol's analysis must not kill the whole run
                 screened_out.append(f"{entry.symbol}: analysis failed ({exc})")
                 continue
