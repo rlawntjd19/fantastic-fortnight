@@ -7,6 +7,8 @@ decides the signal/confidence numbers themselves.
 """
 from __future__ import annotations
 
+import datetime as dt
+
 from trading_agent.agents.schemas import AnalystReport, Signal
 from trading_agent.data.indicators import momentum, rsi, sma
 from trading_agent.data.macro import MacroDataProvider
@@ -293,6 +295,124 @@ class ForecastAnalyst:
             user=points[0],
         )
         return AnalystReport(self.name, signal, confidence, summary, points)
+
+
+class SeasonalityAnalyst:
+    """Checks whether *this specific name* has a real historical tendency
+    to move in one direction from about now through year-end — the family
+    of calendar anomalies (the "Halloween effect"/Nov-Apr seasonality,
+    the January effect, Santa Claus rally, year-end window dressing) that
+    shows up repeatedly in academic finance literature without one agreed
+    causal explanation. That documented, real pattern is the reason this
+    desk exists; it is not this codebase's opinion about which tickers
+    "always rally in Q4" — every number below comes from that one symbol's
+    own real multi-year price history (`long_history`), never a hardcoded
+    list of names.
+
+    A name with no long-enough real history (offline/simulated runs,
+    thin/newly-listed names, a failed fetch) reports neutral at zero
+    confidence — exactly like every other desk's missing-data case — never
+    a guess standing in for evidence.
+    """
+
+    name = "seasonality_analyst"
+
+    # Below this many qualifying past years a win-rate is just noise, not
+    # signal — same discipline as the conviction/volatility floors in
+    # performance_tracker.py: a thin sample doesn't get to look decisive.
+    MIN_QUALIFYING_YEARS = 4
+    # A trading day must fall within this many calendar days of the target
+    # anchor/year-end date to count as "the same point in that year" —
+    # weekends/holidays mean an exact date match would silently drop most
+    # years.
+    _MAX_DAY_SLOP_DAYS = 7
+    # A historical calendar tendency is real evidence, not a guarantee it
+    # repeats this particular year (it can already be priced in, or simply
+    # not recur) — cap confidence well short of the other desks' ceiling.
+    _MAX_CONFIDENCE = 0.6
+
+    def __init__(self, llm: LLMClient) -> None:
+        self._llm = llm
+
+    def analyze(self, long_history, as_of: dt.date) -> AnalystReport:
+        yearly_returns = self._yearly_seasonal_returns(long_history, as_of) if long_history else []
+
+        if len(yearly_returns) < self.MIN_QUALIFYING_YEARS:
+            summary = self._llm.narrate(
+                system="You are a terse seasonality analyst. One sentence, no advice.",
+                user="Not enough years of real price history to read a seasonal pattern for this name.",
+            )
+            return AnalystReport(
+                self.name,
+                Signal.NEUTRAL,
+                0.0,
+                summary,
+                [
+                    f"Only {len(yearly_returns)} qualifying past year(s) of same-period-to-year-end "
+                    f"data — {self.MIN_QUALIFYING_YEARS} needed for a real read."
+                ],
+            )
+
+        wins = sum(1 for _, ret in yearly_returns if ret > 0)
+        win_rate = wins / len(yearly_returns)
+        avg_return = sum(ret for _, ret in yearly_returns) / len(yearly_returns)
+
+        if win_rate >= 0.7 and avg_return > 0:
+            signal = Signal.BULLISH
+        elif win_rate <= 0.3 and avg_return < 0:
+            signal = Signal.BEARISH
+        else:
+            signal = Signal.NEUTRAL
+        confidence = self._MAX_CONFIDENCE * abs(win_rate - 0.5) * 2 * min(1.0, len(yearly_returns) / 8)
+
+        points = [f"{year} (this date -> year-end): {ret * 100:+.1f}%" for year, ret in yearly_returns]
+        points.append(
+            f"Positive in {wins}/{len(yearly_returns)} of the last {len(yearly_returns)} years "
+            f"(avg {avg_return * 100:+.1f}%) over this same stretch of the calendar."
+        )
+        summary = self._llm.narrate(
+            system="You are a terse seasonality analyst. One sentence, no advice.",
+            user="\n".join(points),
+        )
+        return AnalystReport(self.name, signal, confidence, summary, points)
+
+    def _yearly_seasonal_returns(self, history, as_of: dt.date) -> list[tuple[int, float]]:
+        bars_by_date = sorted(
+            (dt.datetime.fromtimestamp(b.timestamp, tz=dt.timezone.utc).date(), b.close) for b in history.bars
+        )
+        if not bars_by_date:
+            return []
+
+        past_years = sorted({d.year for d, _ in bars_by_date if d.year < as_of.year})
+        results: list[tuple[int, float]] = []
+        for year in past_years:
+            try:
+                anchor_target = dt.date(year, as_of.month, as_of.day)
+            except ValueError:
+                continue  # e.g. as_of is Feb 29 and `year` wasn't a leap year
+            year_end_target = dt.date(year, 12, 31)
+
+            anchor = self._closest_price(bars_by_date, anchor_target)
+            year_end = self._closest_price(bars_by_date, year_end_target)
+            if anchor is None or year_end is None:
+                continue
+            anchor_date, anchor_close = anchor
+            end_date, end_close = year_end
+            if end_date <= anchor_date or anchor_close <= 0:
+                continue
+            results.append((year, end_close / anchor_close - 1.0))
+        return results
+
+    def _closest_price(self, bars_by_date: list[tuple[dt.date, float]], target: dt.date):
+        best = None
+        best_gap = None
+        for d, close in bars_by_date:
+            gap = abs((d - target).days)
+            if gap > self._MAX_DAY_SLOP_DAYS:
+                continue
+            if best_gap is None or gap < best_gap:
+                best, best_gap = (d, close), gap
+        return best
 
 
 def _score_to_signal(score: float, max_abs_score: float) -> tuple[Signal, float]:

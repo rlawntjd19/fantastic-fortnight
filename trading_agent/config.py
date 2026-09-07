@@ -84,6 +84,11 @@ class LiveDataConfig:
     enabled: bool = os.environ.get("TRADING_AGENT_LIVE_DATA_ENABLED", "false").lower() == "true"
     period: str = os.environ.get("TRADING_AGENT_LIVE_DATA_PERIOD", "6mo")
     interval: str = os.environ.get("TRADING_AGENT_LIVE_DATA_INTERVAL", "1d")
+    # A separate, much longer window than `period` above, used only to feed
+    # SeasonalityAnalyst real multi-year history for its own-symbol,
+    # own-calendar-window win-rate check — the other 5 desks never see this
+    # window, only `period`.
+    seasonal_period: str = os.environ.get("TRADING_AGENT_SEASONAL_LOOKBACK_PERIOD", "10y")
 
 
 @dataclass(frozen=True)

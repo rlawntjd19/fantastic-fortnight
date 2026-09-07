@@ -26,10 +26,14 @@ from trading_agent.committee.daily_report import OKR_TARGET_LOW_PP, run_daily_cy
 from trading_agent.committee.performance_tracker import DEFAULT_STATE_PATH, load_state, save_state
 from trading_agent.committee.render import write_report
 from trading_agent.committee.report_validation import validate_report
-from trading_agent.committee.universe import UNIVERSE
+from trading_agent.committee.universe import UNIVERSE, get_live_universe
 from trading_agent.config import DEFAULT_CONFIG
 from trading_agent.dashboard import DashboardState, start_dashboard_server
-from trading_agent.data.factory import build_macro_provider, build_market_data_provider
+from trading_agent.data.factory import (
+    build_macro_provider,
+    build_market_data_provider,
+    build_seasonal_history_provider,
+)
 from trading_agent.data.providers import SimulatedFeed
 from trading_agent.engine.backtest import ReplayFeed, run_backtest
 from trading_agent.engine.journal import TradeJournal, record_execution
@@ -311,7 +315,13 @@ def _run_daily_picks(args) -> int:
     llm = build_llm_client(config)
     provider = build_market_data_provider(config)
     macro_provider = build_macro_provider(config)
+    seasonal_provider = build_seasonal_history_provider(config)
     forecaster = build_price_forecaster(config)
+    # Real S&P 500 constituents (get_live_universe fetches Wikipedia's
+    # current list fresh every run) instead of the static 40-name UNIVERSE
+    # — live runs only, so offline/backtest/tests keep using UNIVERSE and
+    # stay deterministic and network-free.
+    universe_fetcher = get_live_universe if config.live_data.enabled else None
 
     if args.live:
         # build_market_data_provider() falls back to SimulatedFeed if
@@ -375,7 +385,17 @@ def _run_daily_picks(args) -> int:
     print(f"Equity research committee — {run_id}")
     print("=" * 60)
 
-    report = run_daily_cycle(config, llm, provider, macro_provider, forecaster, state, run_date=run_date)
+    report = run_daily_cycle(
+        config,
+        llm,
+        provider,
+        macro_provider,
+        forecaster,
+        state,
+        run_date=run_date,
+        seasonal_provider=seasonal_provider,
+        universe_fetcher=universe_fetcher,
+    )
 
     # Judge the report against its own numbers before persisting anything —
     # weights that don't sum to 1, an alpha figure that doesn't match its own

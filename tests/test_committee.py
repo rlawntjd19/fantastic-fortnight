@@ -1,16 +1,35 @@
 import datetime as dt
 
 from trading_agent.committee.daily_report import RESEARCH_WINDOW_END, run_daily_cycle
-from trading_agent.committee.schemas import PortfolioState
-from trading_agent.committee.universe import MIN_MARKET_CAP_USD, screen_ineligible, UniverseEntry
+from trading_agent.committee.schemas import PortfolioState, Position
+from trading_agent.committee.universe import MIN_MARKET_CAP_USD, UNIVERSE, screen_ineligible, UniverseEntry
 from trading_agent.config import DEFAULT_CONFIG
 from trading_agent.data.macro import StaticMacroProvider
-from trading_agent.data.providers import SimulatedFeed
+from trading_agent.data.providers import Bar, MarketSnapshot, SimulatedFeed
 from trading_agent.forecast.heuristic_forecaster import HeuristicForecaster
 from trading_agent.llm.client import DummyLLMClient
 
 
-def _run(run_date=dt.date(2026, 8, 31), state=None, seed=7):
+def _epoch(year: int, month: int, day: int) -> int:
+    return int(dt.datetime(year, month, day, tzinfo=dt.timezone.utc).timestamp())
+
+
+class _FakeSeasonalProvider:
+    """A real-calendar-dated, multi-year history feed for SeasonalityAnalyst
+    — every year the same consistently-bullish pattern, so any symbol
+    screened against it gets a real (non-thin, non-neutral) seasonal read
+    instead of the fake epoch-index bars SimulatedFeed hands the other 5
+    desks."""
+
+    def get_snapshot(self, symbol: str) -> MarketSnapshot:
+        bars = []
+        for year in range(2020, 2026):
+            bars.append(Bar(_epoch(year, 8, 31), 100.0, 100.0, 100.0, 100.0, 1_000.0))
+            bars.append(Bar(_epoch(year, 12, 31), 112.0, 112.0, 112.0, 112.0, 1_000.0))
+        return MarketSnapshot(symbol=symbol, bars=bars)
+
+
+def _run(run_date=dt.date(2026, 8, 31), state=None, seed=7, seasonal_provider=None, universe_fetcher=None):
     return run_daily_cycle(
         DEFAULT_CONFIG,
         DummyLLMClient(),
@@ -19,6 +38,8 @@ def _run(run_date=dt.date(2026, 8, 31), state=None, seed=7):
         HeuristicForecaster(),
         state or PortfolioState(),
         run_date=run_date,
+        seasonal_provider=seasonal_provider,
+        universe_fetcher=universe_fetcher,
     )
 
 
@@ -88,13 +109,89 @@ def test_one_symbols_analysis_crashing_does_not_kill_the_whole_run(monkeypatch):
 
     real_assess = daily_report_module.assess_symbol
 
-    def _flaky_assess(entry, snapshot, spy_momentum, analysts, research_manager):
+    def _flaky_assess(entry, snapshot, spy_momentum, analysts, research_manager, **kwargs):
         if entry.symbol == "AAPL":
             raise ValueError("synthetic failure for this test")
-        return real_assess(entry, snapshot, spy_momentum, analysts, research_manager)
+        return real_assess(entry, snapshot, spy_momentum, analysts, research_manager, **kwargs)
 
     monkeypatch.setattr(daily_report_module, "assess_symbol", _flaky_assess)
 
     report = _run()
     assert any("AAPL" in note and "failed" in note for note in report.screened_out)
     assert len(report.open_positions) == 3  # basket still fills from the rest of the universe
+
+
+def test_seasonal_provider_feeds_a_real_signal_without_crashing_or_changing_basket_size():
+    # SeasonalityAnalyst needs real calendar-dated multi-year history,
+    # which SimulatedFeed's index-timestamped bars can't provide (see
+    # test_seasonality.test_no_real_calendar_history_reports_neutral) —
+    # this confirms the separate `seasonal_provider` plumbing actually
+    # reaches assess_symbol end-to-end and produces a real (non-thin)
+    # seasonal read for every screened candidate, without disturbing the
+    # rest of the pipeline.
+    report = _run(seasonal_provider=_FakeSeasonalProvider())
+
+    assert len(report.open_positions) == 3
+    seasonal_reports = [
+        r
+        for c in report.candidates
+        for r in c.analyst_reports
+        if r.agent_name == "seasonality_analyst"
+    ]
+    assert seasonal_reports  # the desk actually ran for at least one candidate
+    assert any(len(r.key_points) > 1 for r in seasonal_reports)  # a real read, not the "too few years" stub
+
+
+def test_universe_fetcher_replaces_the_static_universe_when_given():
+    fake_universe = [UniverseEntry("AAPL", "stock", "Technology"), UniverseEntry("MSFT", "stock", "Technology")]
+
+    report = _run(universe_fetcher=lambda: fake_universe)
+
+    assert report.universe_size == len(fake_universe)
+    assert not any("fell back" in note or "falling back" in note for note in report.screened_out)
+
+
+def test_universe_fetcher_failure_falls_back_to_the_static_universe():
+    def _raise():
+        raise RuntimeError("simulated Wikipedia outage")
+
+    report = _run(universe_fetcher=_raise)
+
+    assert report.universe_size == len(UNIVERSE)
+    assert any("falling back to the static" in note for note in report.screened_out)
+    assert len(report.open_positions) == 3  # the run still completes normally
+
+
+def test_held_position_missing_from_todays_universe_is_still_reunderwritten(monkeypatch):
+    # Real bug this closes: before, a held position whose symbol wasn't in
+    # `UNIVERSE` (e.g. picked from a since-changed S&P 500 fetch, or a
+    # symbol UNIVERSE simply never had) was silently skipped by
+    # `assess_symbol` forever — never re-underwritten, so it could never
+    # exit on a thesis break either.
+    import trading_agent.committee.daily_report as daily_report_module
+
+    real_assess = daily_report_module.assess_symbol
+    seen_symbols = []
+
+    def _recording_assess(entry, snapshot, spy_momentum, analysts, research_manager, **kwargs):
+        seen_symbols.append(entry.symbol)
+        return real_assess(entry, snapshot, spy_momentum, analysts, research_manager, **kwargs)
+
+    monkeypatch.setattr(daily_report_module, "assess_symbol", _recording_assess)
+
+    state = PortfolioState(
+        positions=[
+            Position(
+                symbol="ZZZZ",  # deliberately not in UNIVERSE
+                security_type="stock",
+                entry_date="2026-08-01",
+                entry_price=100.0,
+                benchmark_entry_price=500.0,
+                thesis="test",
+            )
+        ]
+    )
+
+    _run(run_date=dt.date(2026, 8, 31), state=state)
+
+    assert "ZZZZ" in seen_symbols

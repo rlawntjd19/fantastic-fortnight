@@ -26,6 +26,7 @@ import datetime as dt
 from trading_agent.agents.analysts import (
     FundamentalAnalyst,
     MacroAnalyst,
+    SeasonalityAnalyst,
     SentimentAnalyst,
     TechnicalAnalyst,
     ForecastAnalyst,
@@ -35,7 +36,7 @@ from trading_agent.agents.schemas import Signal
 from trading_agent.committee.performance_tracker import build_scoreboard
 from trading_agent.committee.portfolio_manager import PortfolioManager
 from trading_agent.committee.schemas import CandidateAssessment, CommitteeReport, Position
-from trading_agent.committee.universe import BENCHMARK_SYMBOL, UNIVERSE, screen_ineligible
+from trading_agent.committee.universe import BENCHMARK_SYMBOL, UNIVERSE, UniverseEntry, screen_ineligible
 from trading_agent.config import Config
 from trading_agent.data.indicators import momentum, volatility as compute_volatility
 from trading_agent.data.macro import MacroDataProvider
@@ -101,6 +102,8 @@ def assess_symbol(
     spy_momentum: float | None,
     analysts: dict,
     research_manager: ResearchManager,
+    seasonal_snapshot=None,
+    as_of: dt.date | None = None,
 ) -> CandidateAssessment:
     reports = [
         analysts["technical"].analyze(snapshot),
@@ -109,6 +112,15 @@ def assess_symbol(
         analysts["macro"].analyze(snapshot),
         analysts["forecast"].analyze(snapshot),
     ]
+    # Optional 6th desk: real, per-symbol calendar-seasonality evidence
+    # (see SeasonalityAnalyst). Only present for callers that wire it in
+    # (the live daily_report pipeline, below) — `committee.backtest`
+    # deliberately doesn't build one, keeping its already-validated
+    # basket-size evidence untouched. `seasonal_snapshot=None` degrades to
+    # a neutral, zero-confidence vote, which is a no-op in
+    # ResearchManager.debate's weighted average.
+    if "seasonality" in analysts and as_of is not None:
+        reports.append(analysts["seasonality"].analyze(seasonal_snapshot, as_of))
     debate = research_manager.debate(reports)
 
     symbol_momentum = momentum(snapshot.closes, 10)
@@ -138,12 +150,44 @@ def run_daily_cycle(
     forecaster: PriceForecaster,
     state,
     run_date: dt.date | None = None,
+    seasonal_provider: MarketDataProvider | None = None,
+    universe_fetcher=None,
 ) -> CommitteeReport:
     """Runs one day's cycle against `state` (mutated in place) and returns
     the report to render. Caller is responsible for persisting `state`
-    afterwards (see `performance_tracker.save_state`)."""
+    afterwards (see `performance_tracker.save_state`).
+
+    `seasonal_provider`, when given, is a `MarketDataProvider` configured
+    for a long (multi-year) history window — a separate fetch from
+    `provider`'s normal short window, feeding `SeasonalityAnalyst` real
+    calendar-dated bars to compute each symbol's own historical
+    year-end tendency from (see `data/factory.build_seasonal_history_provider`).
+    `None` (the default; every non-live caller, including `committee.backtest`
+    and the test suite) simply runs without that desk's signal — a no-op,
+    not a degraded run.
+
+    `universe_fetcher`, when given, is a zero-arg callable returning the
+    day's candidate `list[UniverseEntry]` (see `universe.get_live_universe`)
+    — real S&P 500 constituents plus the broad-market ETFs on live runs,
+    fetched fresh so index reconstitutions show up automatically. `None`
+    (the default; every non-live caller) uses the static 40-name `UNIVERSE`
+    instead, and a live fetch that raises falls back to it too rather than
+    crashing the run.
+    """
     run_date = run_date or dt.date.today()
     window_open = run_date <= RESEARCH_WINDOW_END
+
+    screened_out: list[str] = []
+    if universe_fetcher is not None:
+        try:
+            universe = universe_fetcher()
+        except Exception as exc:  # noqa: BLE001 - a live universe fetch failure must degrade, not crash the run
+            screened_out.append(
+                f"Live universe fetch failed ({exc}); falling back to the static {len(UNIVERSE)}-name universe"
+            )
+            universe = UNIVERSE
+    else:
+        universe = UNIVERSE
 
     analysts = {
         "technical": TechnicalAnalyst(llm),
@@ -151,11 +195,18 @@ def run_daily_cycle(
         "sentiment": SentimentAnalyst(llm),
         "macro": MacroAnalyst(llm, macro_provider),
         "forecast": ForecastAnalyst(llm, forecaster),
+        "seasonality": SeasonalityAnalyst(llm),
     }
+
+    def _seasonal_snapshot(symbol: str):
+        if seasonal_provider is None:
+            return None
+        try:
+            return seasonal_provider.get_snapshot(symbol)
+        except Exception:  # noqa: BLE001 - one bad symbol's long-history fetch must not kill the run
+            return None
     research_manager = ResearchManager(llm)
     cio = PortfolioManager(llm, min_picks=LIVE_MIN_PICKS, max_picks=LIVE_MAX_PICKS)
-
-    screened_out: list[str] = []
 
     try:
         spy_snapshot = provider.get_snapshot(BENCHMARK_SYMBOL)
@@ -174,7 +225,17 @@ def run_daily_cycle(
     # this loop already does for the exit decision — not recomputed twice.
     held_assessments: dict[str, CandidateAssessment] = {}
     for position in list(state.open_positions):
-        entry = next((e for e in UNIVERSE if e.symbol == position.symbol), None)
+        # A held position not found in today's universe (picked from a
+        # since-changed S&P 500 fetch, or from the static UNIVERSE on a day
+        # the live fetch failed) still gets re-underwritten via a minimal
+        # synthetic entry — assess_symbol only reads .symbol/.security_type
+        # from it, and a held position was never re-screened for
+        # eligibility anyway. Losing this lookup used to mean the position
+        # was silently never re-underwritten again (see the old comment
+        # below); that's a real bug, not an accepted tradeoff.
+        entry = next((e for e in universe if e.symbol == position.symbol), None) or next(
+            (e for e in UNIVERSE if e.symbol == position.symbol), None
+        ) or UniverseEntry(position.symbol, position.security_type, "Unclassified")
         try:
             snapshot = provider.get_snapshot(position.symbol)
         except Exception as exc:  # noqa: BLE001
@@ -182,10 +243,16 @@ def run_daily_cycle(
             continue
         current_prices[position.symbol] = snapshot.last_price
 
-        if entry is None:
-            continue  # held name fell out of the static universe table; still tracked, just not re-underwritten
         try:
-            assessment = assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager)
+            assessment = assess_symbol(
+                entry,
+                snapshot,
+                spy_momentum,
+                analysts,
+                research_manager,
+                seasonal_snapshot=_seasonal_snapshot(position.symbol),
+                as_of=run_date,
+            )
         except Exception as exc:  # noqa: BLE001 - one bad symbol's analysis must not kill the whole run
             screened_out.append(f"{position.symbol}: re-underwriting failed ({exc}); kept at last known price")
             continue
@@ -215,7 +282,7 @@ def run_daily_cycle(
     # --- screen the universe for new candidates (only while the window is open) ---
     candidates: list[CandidateAssessment] = []
     if window_open:
-        for entry in UNIVERSE:
+        for entry in universe:
             if entry.symbol == BENCHMARK_SYMBOL and entry.security_type == "index_etf":
                 pass  # SPY itself is still eligible as a defensive pick
             try:
@@ -231,7 +298,17 @@ def run_daily_cycle(
 
             current_prices.setdefault(entry.symbol, snapshot.last_price)
             try:
-                candidates.append(assess_symbol(entry, snapshot, spy_momentum, analysts, research_manager))
+                candidates.append(
+                    assess_symbol(
+                        entry,
+                        snapshot,
+                        spy_momentum,
+                        analysts,
+                        research_manager,
+                        seasonal_snapshot=_seasonal_snapshot(entry.symbol),
+                        as_of=run_date,
+                    )
+                )
             except Exception as exc:  # noqa: BLE001 - one bad symbol's analysis must not kill the whole run
                 screened_out.append(f"{entry.symbol}: analysis failed ({exc})")
                 continue
@@ -287,7 +364,7 @@ def run_daily_cycle(
 
     return CommitteeReport(
         run_date=run_date.isoformat(),
-        universe_size=len(UNIVERSE),
+        universe_size=len(universe),
         screened_out=screened_out,
         candidates=candidates,
         exits=exits,

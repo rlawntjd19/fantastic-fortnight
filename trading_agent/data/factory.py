@@ -31,6 +31,29 @@ def build_market_data_provider(config):
         return SimulatedFeed()
 
 
+def build_seasonal_history_provider(config):
+    """A long-history `MarketDataProvider` for `SeasonalityAnalyst` only —
+    `None` when live data is disabled or `yfinance` is unavailable, since
+    `SimulatedFeed`'s bars carry no real calendar dates and could never
+    produce a real seasonal read (the analyst degrades to neutral on
+    `None`, exactly like any other missing-data case, so this is a safe
+    default, not a silently degraded run)."""
+    if not config.live_data.enabled:
+        return None
+
+    try:
+        from trading_agent.data.yfinance_provider import YFinanceFeed
+
+        return YFinanceFeed(period=config.live_data.seasonal_period, interval="1d")
+    except Exception as exc:  # noqa: BLE001 - missing/broken install must degrade, not crash
+        print(
+            f"[trading_agent] Seasonal history provider unavailable ({exc}); "
+            "SeasonalityAnalyst will report neutral this run.",
+            file=sys.stderr,
+        )
+        return None
+
+
 def build_macro_provider(config):
     if not config.live_data.enabled:
         return StaticMacroProvider()
