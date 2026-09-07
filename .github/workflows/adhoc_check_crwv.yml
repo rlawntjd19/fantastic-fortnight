@@ -13,3 +13,5 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt -r requirements-live.txt
       - run: python scripts/adhoc_check_crwv.py
+        env:
+          PYTHONPATH: .
