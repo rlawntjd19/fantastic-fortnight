@@ -1,0 +1,25 @@
+name: Ad hoc portfolio simulation (temporary)
+
+# One-off: runs scripts/adhoc_portfolio_sim.py, which needs real network
+# access to Yahoo Finance that isn't available from the dev sandbox this
+# was authored in. Not part of the committee's own pipeline — this
+# workflow and its script are meant to be removed once the result has
+# been read from this run's job logs.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements-live.txt
+
+      - name: Run the simulation
+        run: python scripts/adhoc_portfolio_sim.py
