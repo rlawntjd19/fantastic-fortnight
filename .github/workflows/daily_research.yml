@@ -69,5 +69,22 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "Equity research committee run: $(date -u +%Y-%m-%dT%H:%MZ)"
-            git push origin HEAD:${{ github.ref_name }}
+            # The concurrency group above serializes *execution* but a
+            # queued run still starts from the ref/sha fixed at its own
+            # trigger time, not the branch's tip once it actually runs --
+            # so a run that waited behind another can find the remote has
+            # already moved and get rejected as non-fast-forward, silently
+            # discarding a completed committee cycle's real analysis. Each
+            # run only ever adds new, uniquely-timestamped report files and
+            # never touches an existing one, so rebasing onto whatever
+            # landed in the meantime is always a clean, conflict-free
+            # replay -- retry with a fetch+rebase instead of giving up.
+            for attempt in 1 2 3; do
+              if git push origin HEAD:${{ github.ref_name }}; then
+                break
+              fi
+              echo "Push rejected (attempt $attempt) -- fetching and rebasing onto the latest tip."
+              git fetch origin ${{ github.ref_name }}
+              git rebase "origin/${{ github.ref_name }}"
+            done
           fi
