@@ -130,3 +130,91 @@ def screen_ineligible(entry: UniverseEntry, fundamentals: dict, last_price: floa
             return f"{symbol}: AUM ${aum:,.0f} below the ${MIN_ETF_AUM_USD:,.0f} ETF floor — excluded"
 
     return None
+
+
+# Broad-market/index ETFs are never S&P 500 "constituents" themselves but
+# are explicitly in-scope per the mandate ("index ETFs, no mutual funds") —
+# kept as their own small list so get_live_universe() can union them onto
+# whatever the real constituent fetch returns, live runs only.
+_BROAD_MARKET_ETFS: list[UniverseEntry] = [
+    UniverseEntry("SPY", "index_etf", "Broad Market"),
+    UniverseEntry("VOO", "index_etf", "Broad Market"),
+    UniverseEntry("VTI", "index_etf", "Broad Market"),
+    UniverseEntry("QQQ", "index_etf", "Large-Cap Growth"),
+    UniverseEntry("DIA", "index_etf", "Broad Market"),
+]
+
+_SP500_WIKIPEDIA_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+
+
+def fetch_sp500_constituents() -> list[UniverseEntry]:
+    """Fetches the real, current S&P 500 constituent list from Wikipedia's
+    actively-maintained "List of S&P 500 companies" page — never a
+    hardcoded/typed-from-memory ticker list, so index reconstitutions
+    (additions, removals, ticker changes) show up on the next live run
+    instead of silently going stale. Sector labels come straight from the
+    page's own GICS Sector column (the real 11-sector GICS taxonomy, not
+    this module's rougher static-universe buckets) — `screen_ineligible`
+    and `PortfolioManager`'s diversification cap both just group by
+    whatever string is here, so this is a drop-in.
+
+    Raises on any fetch/parse failure — callers decide the fallback (see
+    get_live_universe), the same way `MarketDataProvider.get_snapshot`
+    raises rather than silently returning something plausible-looking.
+    """
+    import io
+
+    import pandas as pd
+    import requests
+
+    # Wikipedia's servers reject requests with no identifying User-Agent
+    # (their bot-traffic policy) — fetch the HTML ourselves with one, then
+    # hand the raw text to pandas rather than letting pd.read_html(url)
+    # make its own unidentified request.
+    response = requests.get(
+        _SP500_WIKIPEDIA_URL,
+        headers={"User-Agent": "trading-agent-research-committee/1.0 (educational project, not investment advice)"},
+        timeout=20,
+    )
+    response.raise_for_status()
+
+    table = pd.read_html(io.StringIO(response.text))[0]  # the constituents table is always first on this page
+
+    entries: list[UniverseEntry] = []
+    seen_symbols: set[str] = set()
+    for _, row in table.iterrows():
+        raw_symbol = str(row.get("Symbol", "")).strip()
+        if not raw_symbol or raw_symbol.lower() == "nan":
+            continue
+        # yfinance expects a dash for multi-class tickers (e.g. "BRK-B"),
+        # Wikipedia lists them with a dot ("BRK.B").
+        symbol = raw_symbol.replace(".", "-")
+        if symbol in seen_symbols:
+            continue
+        seen_symbols.add(symbol)
+        sector = str(row.get("GICS Sector", "")).strip() or "Unclassified"
+        entries.append(UniverseEntry(symbol, "stock", sector))
+
+    if len(entries) < 400:  # sanity floor: a real S&P 500 fetch should return ~500
+        raise RuntimeError(f"parsed only {len(entries)} symbols from the S&P 500 page — page structure likely changed")
+
+    return entries
+
+
+def get_live_universe() -> list[UniverseEntry]:
+    """The candidate universe for LIVE daily screening: real, freshly-
+    fetched S&P 500 constituents plus the standing broad-market ETF list.
+    Raises if the constituent fetch fails — `daily_report.run_daily_cycle`
+    catches this and falls back to the static `UNIVERSE` below, so a
+    Wikipedia outage/page change degrades the day's picking rather than
+    crashing the whole run.
+
+    `committee.backtest` deliberately keeps using the static `UNIVERSE`
+    unchanged — this project's basket-size backtest evidence (see
+    daily_report.py's LIVE_MIN_PICKS comment) was computed against that
+    exact 40-name list; broadening the backtest's own candidate pool would
+    need a fresh backtest run before it's evidence about anything.
+    """
+    sp500 = fetch_sp500_constituents()
+    sp500_symbols = {e.symbol for e in sp500}
+    return sp500 + [etf for etf in _BROAD_MARKET_ETFS if etf.symbol not in sp500_symbols]

@@ -1,8 +1,8 @@
 import datetime as dt
 
 from trading_agent.committee.daily_report import RESEARCH_WINDOW_END, run_daily_cycle
-from trading_agent.committee.schemas import PortfolioState
-from trading_agent.committee.universe import MIN_MARKET_CAP_USD, screen_ineligible, UniverseEntry
+from trading_agent.committee.schemas import PortfolioState, Position
+from trading_agent.committee.universe import MIN_MARKET_CAP_USD, UNIVERSE, screen_ineligible, UniverseEntry
 from trading_agent.config import DEFAULT_CONFIG
 from trading_agent.data.macro import StaticMacroProvider
 from trading_agent.data.providers import Bar, MarketSnapshot, SimulatedFeed
@@ -29,7 +29,7 @@ class _FakeSeasonalProvider:
         return MarketSnapshot(symbol=symbol, bars=bars)
 
 
-def _run(run_date=dt.date(2026, 8, 31), state=None, seed=7, seasonal_provider=None):
+def _run(run_date=dt.date(2026, 8, 31), state=None, seed=7, seasonal_provider=None, universe_fetcher=None):
     return run_daily_cycle(
         DEFAULT_CONFIG,
         DummyLLMClient(),
@@ -39,6 +39,7 @@ def _run(run_date=dt.date(2026, 8, 31), state=None, seed=7, seasonal_provider=No
         state or PortfolioState(),
         run_date=run_date,
         seasonal_provider=seasonal_provider,
+        universe_fetcher=universe_fetcher,
     )
 
 
@@ -139,3 +140,58 @@ def test_seasonal_provider_feeds_a_real_signal_without_crashing_or_changing_bask
     ]
     assert seasonal_reports  # the desk actually ran for at least one candidate
     assert any(len(r.key_points) > 1 for r in seasonal_reports)  # a real read, not the "too few years" stub
+
+
+def test_universe_fetcher_replaces_the_static_universe_when_given():
+    fake_universe = [UniverseEntry("AAPL", "stock", "Technology"), UniverseEntry("MSFT", "stock", "Technology")]
+
+    report = _run(universe_fetcher=lambda: fake_universe)
+
+    assert report.universe_size == len(fake_universe)
+    assert not any("fell back" in note or "falling back" in note for note in report.screened_out)
+
+
+def test_universe_fetcher_failure_falls_back_to_the_static_universe():
+    def _raise():
+        raise RuntimeError("simulated Wikipedia outage")
+
+    report = _run(universe_fetcher=_raise)
+
+    assert report.universe_size == len(UNIVERSE)
+    assert any("falling back to the static" in note for note in report.screened_out)
+    assert len(report.open_positions) == 3  # the run still completes normally
+
+
+def test_held_position_missing_from_todays_universe_is_still_reunderwritten(monkeypatch):
+    # Real bug this closes: before, a held position whose symbol wasn't in
+    # `UNIVERSE` (e.g. picked from a since-changed S&P 500 fetch, or a
+    # symbol UNIVERSE simply never had) was silently skipped by
+    # `assess_symbol` forever — never re-underwritten, so it could never
+    # exit on a thesis break either.
+    import trading_agent.committee.daily_report as daily_report_module
+
+    real_assess = daily_report_module.assess_symbol
+    seen_symbols = []
+
+    def _recording_assess(entry, snapshot, spy_momentum, analysts, research_manager, **kwargs):
+        seen_symbols.append(entry.symbol)
+        return real_assess(entry, snapshot, spy_momentum, analysts, research_manager, **kwargs)
+
+    monkeypatch.setattr(daily_report_module, "assess_symbol", _recording_assess)
+
+    state = PortfolioState(
+        positions=[
+            Position(
+                symbol="ZZZZ",  # deliberately not in UNIVERSE
+                security_type="stock",
+                entry_date="2026-08-01",
+                entry_price=100.0,
+                benchmark_entry_price=500.0,
+                thesis="test",
+            )
+        ]
+    )
+
+    _run(run_date=dt.date(2026, 8, 31), state=state)
+
+    assert "ZZZZ" in seen_symbols

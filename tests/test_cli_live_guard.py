@@ -48,6 +48,12 @@ def test_live_run_proceeds_when_provider_is_really_live(tmp_path, monkeypatch):
     # every other live-data seam in this test is faked, this one must be
     # too.
     monkeypatch.setattr(cli_module, "build_seasonal_history_provider", lambda config: None)
+    # Same reasoning as above, for the S&P 500 universe fetch: --live's
+    # real config.live_data.enabled=True would otherwise reach the real
+    # get_live_universe() and hit Wikipedia over the network.
+    from trading_agent.committee.universe import UNIVERSE
+
+    monkeypatch.setattr(cli_module, "get_live_universe", lambda: UNIVERSE)
 
     exit_code = main(["daily-picks", "--live", "--date", "2026-09-02"])
 

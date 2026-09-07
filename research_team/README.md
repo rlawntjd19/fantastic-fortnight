@@ -64,7 +64,16 @@ auditable, not just the output:
    not an open-end mutual fund (5-letter ticker ending in `X`); not a raw
    index ticker; priced above $5.00/share; and above $2B market cap for
    stocks (well above the $500M rubric floor, in line with the mandate's
-   "no small-cap" instruction) or $500M AUM for ETFs.
+   "no small-cap" instruction) or $500M AUM for ETFs. Live runs draw the
+   *candidate pool* itself from `universe.get_live_universe()` — the real,
+   current S&P 500 constituent list (~500 names, fetched fresh from
+   Wikipedia every run, never hardcoded) plus five broad-market ETFs
+   (SPY/VOO/VTI/QQQ/DIA) — rather than the small static 40-name `UNIVERSE`
+   list below, which now exists only as (a) the live fetch's fallback if
+   Wikipedia is unreachable/changes shape, and (b) what `committee.backtest`
+   uses, since all of this project's basket-size backtest evidence was
+   computed against that exact list and stays valid only as long as that
+   candidate pool doesn't silently change under it.
 2. **Exclude already-held names** — the committee rotates the standing
    basket, it doesn't double up on a symbol already open.
 3. **Directional filter** — only candidates with a net-**bullish**
@@ -325,7 +334,7 @@ from the Actions tab and the report lands in `research_team/backtest/`.
 ## Tests
 
 ```bash
-pytest tests/test_committee.py tests/test_committee_backtest.py tests/test_report_validation.py tests/test_report_validation_guard.py tests/test_seasonality.py
+pytest tests/test_committee.py tests/test_committee_backtest.py tests/test_report_validation.py tests/test_report_validation_guard.py tests/test_seasonality.py tests/test_universe.py
 ```
 
 Fully offline (`SimulatedFeed`/synthetic price series + `DummyLLMClient` +

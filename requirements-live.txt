@@ -1,3 +1,11 @@
 # Optional extra for real market data (trading_agent/data/yfinance_provider.py).
 # Not needed unless TRADING_AGENT_LIVE_DATA_ENABLED=true / `--live` is used.
 yfinance>=0.2.40
+
+# Used directly by committee/universe.py's get_live_universe() to fetch the
+# real S&P 500 constituent list from Wikipedia. Already pulled in
+# transitively by yfinance, but declared explicitly since we import them
+# ourselves now rather than only relying on yfinance's internals.
+requests>=2.28
+pandas>=2.0
+lxml>=4.9

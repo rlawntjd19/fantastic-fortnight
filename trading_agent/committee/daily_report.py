@@ -36,7 +36,7 @@ from trading_agent.agents.schemas import Signal
 from trading_agent.committee.performance_tracker import build_scoreboard
 from trading_agent.committee.portfolio_manager import PortfolioManager
 from trading_agent.committee.schemas import CandidateAssessment, CommitteeReport, Position
-from trading_agent.committee.universe import BENCHMARK_SYMBOL, UNIVERSE, screen_ineligible
+from trading_agent.committee.universe import BENCHMARK_SYMBOL, UNIVERSE, UniverseEntry, screen_ineligible
 from trading_agent.config import Config
 from trading_agent.data.indicators import momentum, volatility as compute_volatility
 from trading_agent.data.macro import MacroDataProvider
@@ -151,6 +151,7 @@ def run_daily_cycle(
     state,
     run_date: dt.date | None = None,
     seasonal_provider: MarketDataProvider | None = None,
+    universe_fetcher=None,
 ) -> CommitteeReport:
     """Runs one day's cycle against `state` (mutated in place) and returns
     the report to render. Caller is responsible for persisting `state`
@@ -164,9 +165,29 @@ def run_daily_cycle(
     `None` (the default; every non-live caller, including `committee.backtest`
     and the test suite) simply runs without that desk's signal — a no-op,
     not a degraded run.
+
+    `universe_fetcher`, when given, is a zero-arg callable returning the
+    day's candidate `list[UniverseEntry]` (see `universe.get_live_universe`)
+    — real S&P 500 constituents plus the broad-market ETFs on live runs,
+    fetched fresh so index reconstitutions show up automatically. `None`
+    (the default; every non-live caller) uses the static 40-name `UNIVERSE`
+    instead, and a live fetch that raises falls back to it too rather than
+    crashing the run.
     """
     run_date = run_date or dt.date.today()
     window_open = run_date <= RESEARCH_WINDOW_END
+
+    screened_out: list[str] = []
+    if universe_fetcher is not None:
+        try:
+            universe = universe_fetcher()
+        except Exception as exc:  # noqa: BLE001 - a live universe fetch failure must degrade, not crash the run
+            screened_out.append(
+                f"Live universe fetch failed ({exc}); falling back to the static {len(UNIVERSE)}-name universe"
+            )
+            universe = UNIVERSE
+    else:
+        universe = UNIVERSE
 
     analysts = {
         "technical": TechnicalAnalyst(llm),
@@ -187,8 +208,6 @@ def run_daily_cycle(
     research_manager = ResearchManager(llm)
     cio = PortfolioManager(llm, min_picks=LIVE_MIN_PICKS, max_picks=LIVE_MAX_PICKS)
 
-    screened_out: list[str] = []
-
     try:
         spy_snapshot = provider.get_snapshot(BENCHMARK_SYMBOL)
     except Exception as exc:  # noqa: BLE001 - a benchmark fetch failure must degrade, not crash the run
@@ -206,7 +225,17 @@ def run_daily_cycle(
     # this loop already does for the exit decision — not recomputed twice.
     held_assessments: dict[str, CandidateAssessment] = {}
     for position in list(state.open_positions):
-        entry = next((e for e in UNIVERSE if e.symbol == position.symbol), None)
+        # A held position not found in today's universe (picked from a
+        # since-changed S&P 500 fetch, or from the static UNIVERSE on a day
+        # the live fetch failed) still gets re-underwritten via a minimal
+        # synthetic entry — assess_symbol only reads .symbol/.security_type
+        # from it, and a held position was never re-screened for
+        # eligibility anyway. Losing this lookup used to mean the position
+        # was silently never re-underwritten again (see the old comment
+        # below); that's a real bug, not an accepted tradeoff.
+        entry = next((e for e in universe if e.symbol == position.symbol), None) or next(
+            (e for e in UNIVERSE if e.symbol == position.symbol), None
+        ) or UniverseEntry(position.symbol, position.security_type, "Unclassified")
         try:
             snapshot = provider.get_snapshot(position.symbol)
         except Exception as exc:  # noqa: BLE001
@@ -214,8 +243,6 @@ def run_daily_cycle(
             continue
         current_prices[position.symbol] = snapshot.last_price
 
-        if entry is None:
-            continue  # held name fell out of the static universe table; still tracked, just not re-underwritten
         try:
             assessment = assess_symbol(
                 entry,
@@ -255,7 +282,7 @@ def run_daily_cycle(
     # --- screen the universe for new candidates (only while the window is open) ---
     candidates: list[CandidateAssessment] = []
     if window_open:
-        for entry in UNIVERSE:
+        for entry in universe:
             if entry.symbol == BENCHMARK_SYMBOL and entry.security_type == "index_etf":
                 pass  # SPY itself is still eligible as a defensive pick
             try:
@@ -337,7 +364,7 @@ def run_daily_cycle(
 
     return CommitteeReport(
         run_date=run_date.isoformat(),
-        universe_size=len(UNIVERSE),
+        universe_size=len(universe),
         screened_out=screened_out,
         candidates=candidates,
         exits=exits,
