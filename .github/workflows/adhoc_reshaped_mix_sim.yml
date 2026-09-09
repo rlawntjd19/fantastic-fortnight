@@ -1,0 +1,24 @@
+name: Ad hoc reshaped mix simulation (temporary)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt -r requirements-live.txt
+
+      - name: Run the simulation
+        env:
+          PYTHONPATH: .
+        run: |
+          python scripts/adhoc_reshaped_mix_sim.py
