@@ -1,0 +1,139 @@
+{
+  "run_date": "2026-09-09",
+  "universe_size": 508,
+  "screened_out": [],
+  "candidates": [],
+  "exits": [],
+  "entries": [],
+  "open_positions": [
+    {
+      "symbol": "CRM",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 257.5400085449219,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (220.28) above SMA30 (196.36): uptrend Relative strength vs SPY (10-bar): +35.6%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "ADBE",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 292.7900085449219,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (278.02) above SMA30 (259.64): uptrend Relative strength vs SPY (10-bar): +16.0%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "MRK",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 147.75999450683594,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (149.48) above SMA30 (136.85): uptrend Relative strength vs SPY (10-bar): +9.4%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "NFLX",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 81.05000305175781,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend Relative strength vs SPY (10-bar): +7.3%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "V",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 379.3699951171875,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (375.76) above SMA30 (366.77): uptrend Relative strength vs SPY (10-bar): +6.4%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    }
+  ],
+  "scoreboard": [
+    {
+      "symbol": "CRM",
+      "entry_date": "2026-09-01",
+      "entry_price": 257.5400085449219,
+      "current_price": 246.48500061035156,
+      "position_return_pct": -0.042925400201041075,
+      "benchmark_return_pct": -0.005325547229657945,
+      "alpha_pct": -0.03759985297138313,
+      "weight_pct": 0.20609974578379892,
+      "shares": 83,
+      "allocated_value": 20458.25505065918
+    },
+    {
+      "symbol": "ADBE",
+      "entry_date": "2026-09-01",
+      "entry_price": 292.7900085449219,
+      "current_price": 256.9100036621094,
+      "position_return_pct": -0.1225451819928054,
+      "benchmark_return_pct": -0.005325547229657945,
+      "alpha_pct": -0.11721963476314745,
+      "weight_pct": 0.13617192561888908,
+      "shares": 53,
+      "allocated_value": 13616.230194091797
+    },
+    {
+      "symbol": "MRK",
+      "entry_date": "2026-09-01",
+      "entry_price": 147.75999450683594,
+      "current_price": 148.5,
+      "position_return_pct": 0.005008158640191551,
+      "benchmark_return_pct": -0.005325547229657945,
+      "alpha_pct": 0.010333705869849497,
+      "weight_pct": 0.10862417941531867,
+      "shares": 73,
+      "allocated_value": 10840.5
+    },
+    {
+      "symbol": "NFLX",
+      "entry_date": "2026-09-01",
+      "entry_price": 81.05000305175781,
+      "current_price": 76.31500244140625,
+      "position_return_pct": -0.058420733276565495,
+      "benchmark_return_pct": -0.005325547229657945,
+      "alpha_pct": -0.05309518604690755,
+      "weight_pct": 0.15559587695270094,
+      "shares": 203,
+      "allocated_value": 15491.945495605469
+    },
+    {
+      "symbol": "V",
+      "entry_date": "2026-09-01",
+      "entry_price": 379.3699951171875,
+      "current_price": 367.4200134277344,
+      "position_return_pct": -0.03149954356765028,
+      "benchmark_return_pct": -0.005325547229657945,
+      "alpha_pct": -0.026173996337992333,
+      "weight_pct": 0.39350827222929236,
+      "shares": 107,
+      "allocated_value": 39313.94143676758
+    }
+  ],
+  "cio_rationale": "Research window closed (past the everyday-until-2026-09-07 mandate) — no new candidates were screened; the existing basket is still marked to market below.",
+  "okr_summary": "Basket-average alpha vs SPY across 5 open position(s): -4.48pp (OKR target: +10-15pp or better over each position's 2-3 month hold)."
+}
