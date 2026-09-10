@@ -1,0 +1,19 @@
+name: Ad hoc SKHY FX parity check (temporary)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-live.txt
+      - name: Run check
+        env:
+          PYTHONPATH: .
+        run: python scripts/adhoc_skhy_fx_check.py
