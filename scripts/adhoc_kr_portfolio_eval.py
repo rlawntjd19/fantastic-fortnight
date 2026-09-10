@@ -39,11 +39,13 @@ from trading_agent.llm.client import build_llm_client
 # Candidate Korea-listed codes, each with the name we EXPECT. Only trust a
 # code whose returned name actually matches -- otherwise report it as
 # unverified rather than silently analyzing the wrong fund.
+# Verified against the price actually shown in the holder's account --
+# a matching price is far stronger evidence the code is right than a name
+# string (fund families rebrand; Yahoo keeps stale names).
 KR_CANDIDATES = {
-    "360750.KS": "TIGER 미국S&P500",
-    "379810.KS": "KODEX 미국나스닥100",
-    "411060.KS": "ACE KRX금현물",
-    "371160.KS": "KODEX 차이나과창판STAR50",
+    "360750.KS": ("TIGER 미국S&P500", 25380),
+    "379810.KS": ("KODEX 미국나스닥100", 26020),
+    "411060.KS": ("ACE KRX금현물", 26670),
 }
 
 # US-listed proxies for each underlying exposure the portfolio actually holds.
@@ -57,35 +59,45 @@ PROXIES = {
 print("=" * 70)
 print("PASS 1: Korea-listed codes -- verify by name match, never assume")
 print("=" * 70)
-for code, expected in KR_CANDIDATES.items():
+for code, (expected, account_price) in KR_CANDIDATES.items():
     try:
         info = yf.Ticker(code).info
         name = info.get("longName") or info.get("shortName") or ""
         price = info.get("currentPrice") or info.get("regularMarketPrice")
-        currency = info.get("currency")
-        if not name:
-            print(f"  {code}: no data returned -- UNVERIFIED (expected {expected!r})")
+        if not name or price is None:
+            print(f"  {code}: no data -- UNVERIFIED (expected {expected})")
             continue
-        print(f"  {code}: name={name!r} price={price} {currency}")
-        print(f"      expected {expected!r} -> {'LIKELY MATCH' if expected.split()[0].lower() in name.lower() else 'NAME MISMATCH -- do not trust'}")
+        drift = abs(price - account_price) / account_price
+        verdict = "VERIFIED by price" if drift < 0.01 else f"PRICE MISMATCH ({drift:.1%}) -- do not trust"
+        print(f"  {code}: {name}")
+        print(f"      price {price:,.0f} vs account {account_price:,} -> {verdict}")
     except Exception as exc:  # noqa: BLE001
         print(f"  {code}: fetch failed ({exc}) -- UNVERIFIED")
+
+print("\n  KODEX 차이나과창판STAR50: code not identified -- 371160.KS returned a")
+print("  Hang Seng Tech ETF at a different price, so it was rejected rather than")
+print("  assumed. Analyzed below via a China-tech proxy instead.")
 
 print()
 print("=" * 70)
 print("PASS 2: Real 1-year correlation across the underlying exposures")
 print("=" * 70)
-frames = {}
-for symbol in PROXIES:
+def daily_returns(symbol):
+    """Close-to-close returns indexed by plain date -- different exchanges
+    (US equity vs FX) carry different tz-aware timestamps, and joining them
+    raw yields an all-NaN frame."""
     hist = yf.Ticker(symbol).history(period="1y", interval="1d")
-    frames[symbol] = hist["Close"].pct_change().dropna()
+    r = hist["Close"].pct_change().dropna()
+    r.index = [d.date() for d in r.index]
+    return r
+
+frames = {s: daily_returns(s) for s in PROXIES}
 # USD/KRW too -- these are KRW-denominated wrappers on USD assets, so FX is
 # a real, separate risk factor the holder is carrying whether they meant to or not.
-fx = yf.Ticker("KRW=X").history(period="1y", interval="1d")
-frames["USDKRW"] = fx["Close"].pct_change().dropna()
+frames["USDKRW"] = daily_returns("KRW=X")
 
 df = pd.DataFrame(frames).dropna()
-print(f"(shared trading days: {len(df)}, {df.index[0].date()} to {df.index[-1].date()})\n")
+print(f"(shared trading days: {len(df)}, {df.index[0]} to {df.index[-1]})\n")
 print(df.corr().round(2).to_string())
 
 print("\nReal annualized volatility (1y daily):")
@@ -97,7 +109,8 @@ for symbol in PROXIES:
     hist = yf.Ticker(symbol).history(period="1y", interval="1d")
     ret = hist["Close"].iloc[-1] / hist["Close"].iloc[0] - 1
     print(f"  {symbol}: {ret:+.1%}")
-fx_ret = fx["Close"].iloc[-1] / fx["Close"].iloc[0] - 1
+fx_hist = yf.Ticker("KRW=X").history(period="1y", interval="1d")
+fx_ret = fx_hist["Close"].iloc[-1] / fx_hist["Close"].iloc[0] - 1
 print(f"  USDKRW: {fx_ret:+.1%}  (positive = KRW weakened = unhedged USD holdings gained)")
 
 print()
