@@ -14,32 +14,6 @@
       "exit_reason": null
     },
     {
-      "symbol": "ADBE",
-      "security_type": "stock",
-      "entry_date": "2026-09-01",
-      "entry_price": 292.7900085449219,
-      "benchmark_entry_price": 767.0499877929688,
-      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (278.02) above SMA30 (259.64): uptrend Relative strength vs SPY (10-bar): +16.0%.",
-      "status": "open",
-      "exit_date": null,
-      "exit_price": null,
-      "benchmark_exit_price": null,
-      "exit_reason": null
-    },
-    {
-      "symbol": "MRK",
-      "security_type": "stock",
-      "entry_date": "2026-09-01",
-      "entry_price": 147.75999450683594,
-      "benchmark_entry_price": 767.0499877929688,
-      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (149.48) above SMA30 (136.85): uptrend Relative strength vs SPY (10-bar): +9.4%.",
-      "status": "open",
-      "exit_date": null,
-      "exit_price": null,
-      "benchmark_exit_price": null,
-      "exit_reason": null
-    },
-    {
       "symbol": "NFLX",
       "security_type": "stock",
       "entry_date": "2026-09-01",
@@ -66,5 +40,32 @@
       "exit_reason": null
     }
   ],
-  "closed": []
+  "closed": [
+    {
+      "symbol": "ADBE",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 292.7900085449219,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (278.02) above SMA30 (259.64): uptrend Relative strength vs SPY (10-bar): +16.0%.",
+      "status": "closed_thesis_broke",
+      "exit_date": "2026-09-16",
+      "exit_price": 253.02000427246094,
+      "benchmark_exit_price": 757.6500244140625,
+      "exit_reason": "Committee consensus flipped bearish (confidence 0.21): [offline-stub] Bull case: [offline-stub] P/E 14.1: reasonably valued or cheap"
+    },
+    {
+      "symbol": "MRK",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 147.75999450683594,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (149.48) above SMA30 (136.85): uptrend Relative strength vs SPY (10-bar): +9.4%.",
+      "status": "closed_thesis_broke",
+      "exit_date": "2026-09-16",
+      "exit_price": 144.4315948486328,
+      "benchmark_exit_price": 757.6500244140625,
+      "exit_reason": "Committee consensus flipped bearish (confidence 0.27): [offline-stub] Bull case: [offline-stub] SMA10 (146.51) above SMA30 (142.67): uptrend"
+    }
+  ]
 }
