@@ -25,19 +25,6 @@
       "exit_price": null,
       "benchmark_exit_price": null,
       "exit_reason": null
-    },
-    {
-      "symbol": "V",
-      "security_type": "stock",
-      "entry_date": "2026-09-01",
-      "entry_price": 379.3699951171875,
-      "benchmark_entry_price": 767.0499877929688,
-      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (375.76) above SMA30 (366.77): uptrend Relative strength vs SPY (10-bar): +6.4%.",
-      "status": "open",
-      "exit_date": null,
-      "exit_price": null,
-      "benchmark_exit_price": null,
-      "exit_reason": null
     }
   ],
   "closed": [
@@ -66,6 +53,19 @@
       "exit_price": 144.4315948486328,
       "benchmark_exit_price": 757.6500244140625,
       "exit_reason": "Committee consensus flipped bearish (confidence 0.27): [offline-stub] Bull case: [offline-stub] SMA10 (146.51) above SMA30 (142.67): uptrend"
+    },
+    {
+      "symbol": "V",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 379.3699951171875,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (375.76) above SMA30 (366.77): uptrend Relative strength vs SPY (10-bar): +6.4%.",
+      "status": "closed_thesis_broke",
+      "exit_date": "2026-09-18",
+      "exit_price": 369.1000061035156,
+      "benchmark_exit_price": 759.969970703125,
+      "exit_reason": "Committee consensus flipped bearish (confidence 0.22): [offline-stub] Bull case: [offline-stub] P/E 31.4: richly valued"
     }
   ]
 }
