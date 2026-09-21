@@ -1,0 +1,64 @@
+{
+  "run_date": "2026-09-21",
+  "universe_size": 508,
+  "screened_out": [],
+  "candidates": [],
+  "exits": [],
+  "entries": [],
+  "open_positions": [
+    {
+      "symbol": "CRM",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 257.5400085449219,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (220.28) above SMA30 (196.36): uptrend Relative strength vs SPY (10-bar): +35.6%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    },
+    {
+      "symbol": "NFLX",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 81.05000305175781,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend Relative strength vs SPY (10-bar): +7.3%.",
+      "status": "open",
+      "exit_date": null,
+      "exit_price": null,
+      "benchmark_exit_price": null,
+      "exit_reason": null
+    }
+  ],
+  "scoreboard": [
+    {
+      "symbol": "CRM",
+      "entry_date": "2026-09-01",
+      "entry_price": 257.5400085449219,
+      "current_price": 236.44000244140625,
+      "position_return_pct": -0.08192904171561066,
+      "benchmark_return_pct": 0.008708679723731683,
+      "alpha_pct": -0.09063772143934234,
+      "weight_pct": 0.5008946598220976,
+      "shares": 211,
+      "allocated_value": 49888.84051513672
+    },
+    {
+      "symbol": "NFLX",
+      "entry_date": "2026-09-01",
+      "entry_price": 81.05000305175781,
+      "current_price": 73.38500213623047,
+      "position_return_pct": -0.09457126004834993,
+      "benchmark_return_pct": 0.008708679723731683,
+      "alpha_pct": -0.10327993977208161,
+      "weight_pct": 0.49910534017790253,
+      "shares": 680,
+      "allocated_value": 49901.80145263672
+    }
+  ],
+  "cio_rationale": "Research window closed (past the everyday-until-2026-09-07 mandate) — no new candidates were screened; the existing basket is still marked to market below.",
+  "okr_summary": "Basket-average alpha vs SPY across 2 open position(s): -9.70pp (OKR target: +10-15pp or better over each position's 2-3 month hold)."
+}
