@@ -12,19 +12,6 @@
       "exit_price": null,
       "benchmark_exit_price": null,
       "exit_reason": null
-    },
-    {
-      "symbol": "NFLX",
-      "security_type": "stock",
-      "entry_date": "2026-09-01",
-      "entry_price": 81.05000305175781,
-      "benchmark_entry_price": 767.0499877929688,
-      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend Relative strength vs SPY (10-bar): +7.3%.",
-      "status": "open",
-      "exit_date": null,
-      "exit_price": null,
-      "benchmark_exit_price": null,
-      "exit_reason": null
     }
   ],
   "closed": [
@@ -66,6 +53,19 @@
       "exit_price": 369.1000061035156,
       "benchmark_exit_price": 759.969970703125,
       "exit_reason": "Committee consensus flipped bearish (confidence 0.22): [offline-stub] Bull case: [offline-stub] P/E 31.4: richly valued"
+    },
+    {
+      "symbol": "NFLX",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 81.05000305175781,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (80.40) above SMA30 (75.60): uptrend Relative strength vs SPY (10-bar): +7.3%.",
+      "status": "closed_thesis_broke",
+      "exit_date": "2026-09-23",
+      "exit_price": 71.62000274658203,
+      "benchmark_exit_price": 768.4600219726562,
+      "exit_reason": "Committee consensus flipped bearish (confidence 0.26): [offline-stub] Bull case: [offline-stub] P/E 22.5: fair value"
     }
   ]
 }
