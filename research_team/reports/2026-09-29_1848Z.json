@@ -1,0 +1,26 @@
+{
+  "run_date": "2026-09-29",
+  "universe_size": 508,
+  "screened_out": [],
+  "candidates": [],
+  "exits": [
+    {
+      "symbol": "CRM",
+      "security_type": "stock",
+      "entry_date": "2026-09-01",
+      "entry_price": 257.5400085449219,
+      "benchmark_entry_price": 767.0499877929688,
+      "thesis": "[offline-stub] Bull case: [offline-stub] SMA10 (220.28) above SMA30 (196.36): uptrend Relative strength vs SPY (10-bar): +35.6%.",
+      "status": "closed_thesis_broke",
+      "exit_date": "2026-09-29",
+      "exit_price": 225.07000732421875,
+      "benchmark_exit_price": 764.5100708007812,
+      "exit_reason": "Committee consensus flipped bearish (confidence 0.41): [offline-stub] Bull case: [offline-stub] P/E 20.6: fair value"
+    }
+  ],
+  "entries": [],
+  "open_positions": [],
+  "scoreboard": [],
+  "cio_rationale": "Research window closed (past the everyday-until-2026-09-07 mandate) — no new candidates were screened; the existing basket is still marked to market below.",
+  "okr_summary": "No open, price-verified positions yet — nothing to score against the OKR this run."
+}
