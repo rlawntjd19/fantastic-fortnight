@@ -1,4 +1,4 @@
-# Daily Equity Research Committee — 2026-11-09
+# Daily Equity Research Committee — 2026-11-10
 
 > Research/education tool. Not investment advice. Every score below is computed in code from analyst-desk signals; the LLM (when configured) only adds narrative on top of numbers that are already final.
 
